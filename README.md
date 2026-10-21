@@ -3,7 +3,7 @@
 > `onmyoji-PVP-draftmap.github.io` · 网易阴阳师斗技上卡思维导图框架
 
 《阴阳师》斗技「禅吞」体系的翻牌/上卡决策导引图框架。
- ~你可以自由配置编辑你的思维导图，可以自由导出并分享~
+ 你可以自由配置编辑你的思维导图，可以自由导出并分享
  在线访问：<https://tesbot.github.io/onmyoji-PVP-draftmap.github.io/>
  
 <img width="2541" height="1245" alt="image" src="https://github.com/user-attachments/assets/857b6b42-21d1-417b-a442-369e2c7b1169" />
