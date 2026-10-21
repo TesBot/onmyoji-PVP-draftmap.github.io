@@ -197,15 +197,66 @@ const BAR_R = `[...document.querySelectorAll('#schemeBar .barR button')].map(b=>
   ck(r.barR.join(',') === '式神配置 · 2,＋ 新建,复制,导出,导入', '方案栏右侧操作组 = ' + r.barR.join(' / '));
   ck(r.nodes >= 97, '可见节点 >= 97（' + r.nodes + '）');
   ck(r.paths >= 90, '连线 >= 90（' + r.paths + '）');
-  ck(r.btns.join(',') === '适应窗口,只看体系,暗色',
-    '顶栏只剩三个按钮（实际 ' + r.btns.join(' / ') + '）');
+  ck(r.btns.join(',') === '适应窗口,只看体系,全部展开,暗色',
+    '顶栏四个按钮（实际 ' + r.btns.join(' / ') + '）');
   ck(!r.btns.includes('编辑') && !r.btns.includes('页面设置'), '「编辑」与「页面设置」入口已移除');
+  // 成对：只看体系 / 全部展开 必须连在同一个 .grp.seg 里
+  let rt = await ev(cdp, `(()=>{
+    const gs=[...document.querySelectorAll('#tools .grp')];
+    const seg=gs.filter(g=>g.classList.contains('seg'));
+    const pair=seg.find(g=>[...g.querySelectorAll('button')].some(b=>b.textContent==='只看体系'));
+    return {groups:gs.length, seps:document.querySelectorAll('#tools .sep').length,
+      segCount:seg.length,
+      pairBtns: pair? [...pair.querySelectorAll('button')].map(b=>b.textContent) : [],
+      pairJoined: !!pair && [...pair.querySelectorAll('button')].length===2,
+      ids:[...document.querySelectorAll('#tools button')].map(b=>b.dataset.id).join(',')};})()`);
+  console.log('  ', JSON.stringify(rt));
+  ck(rt.segCount >= 1 && rt.pairBtns.join(',') === '只看体系,全部展开',
+    '「只看体系 / 全部展开」连体成一对（实际 ' + rt.pairBtns.join(' / ') + '）');
+  ck(rt.pairJoined, '这一对里只有这两个按钮');
+  ck(rt.groups === rt.seps + 1, '按钮按组分开，组间有分隔线（' + rt.groups + ' 组 / ' + rt.seps + ' 条）');
+  ck(rt.ids === 'fit,fold,expand,theme', '每个按钮带 data-id（实际 ' + rt.ids + '）');
   ck(r.pins.length === 1 && r.pins[0] === '示例', '示例方案标着「示例」徽标');
   ck(r.pinTip === '示例导图，无法删除', '徽标提示精简为「示例导图，无法删除」（实际 ' + r.pinTip + '）');
   ck(!r.noteOn, '只有示例方案时不显示丢失提醒条');
   ck(r.avCount > 0 && r.brokenAv === 0,
     '头像全部加载成功（' + r.avCount + ' 张，坏图 ' + r.brokenAv + ' 张）');
   await shot(cdp, '10-初始.png');
+
+  /* ================= 1b. 只看体系 / 全部展开 这一对在真实点击下的表现 ============ */
+  console.log('== 1b. 只看体系 ⇄ 全部展开 ==');
+  const clickBtn = t => ev(cdp, `(()=>{const b=[...document.querySelectorAll('#tools button')]
+      .find(x=>x.textContent==='${t}'); if(!b) return {found:false}; b.click(); return {found:true};})()`);
+  const foldState = () => ev(cdp, `(()=>{
+    const vis=[...document.querySelectorAll('.node')].filter(n=>n.style.display!=='none').length;
+    const on=[...document.querySelectorAll('#tools button')].filter(b=>b.classList.contains('on')).map(b=>b.textContent);
+    const badge=[...document.querySelectorAll('.node .badge')].length;
+    return {vis:vis, on:on, badge:badge};})()`);
+  await clickBtn('只看体系');
+  await sleep(400);
+  r = await foldState();
+  console.log('  ', JSON.stringify(r));
+  ck(r.on.includes('只看体系') && !r.on.includes('全部展开'),
+    '点「只看体系」后只有它亮（实际亮着 ' + r.on.join('/') + '）');
+  ck(r.vis < 97 && r.badge > 0, '只看体系把一级以外全收了（可见 ' + r.vis + ' / 折叠徽标 ' + r.badge + '）');
+  await shot(cdp, '10b-只看体系.png');
+  await clickBtn('全部展开');
+  await sleep(400);
+  r = await foldState();
+  console.log('  ', JSON.stringify(r));
+  ck(r.on.includes('全部展开') && !r.on.includes('只看体系'),
+    '点「全部展开」后按钮状态对调（实际亮着 ' + r.on.join('/') + '）');
+  ck(r.vis >= 97, '全部展开后节点全出来了（可见 ' + r.vis + '）');
+  ck(r.badge === 0, '全部展开后没有折叠徽标（实际 ' + r.badge + '）');
+  await shot(cdp, '10c-全部展开.png');
+  // 手工折一个之后两个都不该亮
+  await ev(cdp, `(()=>{const el=[...document.querySelectorAll('.node')].find(n=>n.textContent.includes('禅吞内战'));
+    el.dispatchEvent(new MouseEvent('click',{bubbles:true})); return 1;})()`);
+  await sleep(400);
+  r = await foldState();
+  ck(r.on.length === 0, '手工折过之后两个按钮都不亮（实际亮着 ' + r.on.join('/') + '）');
+  await clickBtn('全部展开');
+  await sleep(300);
 
   /* ================= 2. 双击节点 -> 编辑面板（式神选择器）================= */
   console.log('== 2. 双击节点框 -> 编辑面板 ==');
@@ -503,7 +554,7 @@ const BAR_R = `[...document.querySelectorAll('#schemeBar .barR button')].map(b=>
   await sleep(2500);
 
   /* ================= 5. 页面设置面板（与方案解耦）================= */
-  console.log('== 5. 顶栏按钮由配置驱动（只剩三个）==');
+  console.log('== 5. 顶栏按钮由配置驱动（四个，两个连体）==');
   r = await ev(cdp, `(()=>{
     const s=document.getElementById('tools').style;
     return {btns:[...document.querySelectorAll('#tools button')].map(b=>b.textContent),
@@ -511,7 +562,7 @@ const BAR_R = `[...document.querySelectorAll('#schemeBar .barR button')].map(b=>
             head:document.getElementById('ttl').textContent, docTitle:document.title};
   })()`);
   console.log('  ', JSON.stringify(r));
-  ck(r.btns.join(',') === '适应窗口,只看体系,暗色', '顶栏 = ' + r.btns.join(' / '));
+  ck(r.btns.join(',') === '适应窗口,只看体系,全部展开,暗色', '顶栏 = ' + r.btns.join(' / '));
   ck(parseFloat(r.radius) >= 99, '按钮改成胶囊形（border-radius ' + r.radius + '）');
   ck(r.head === '翻牌上卡导引图' && r.docTitle === '翻牌上卡导引图',
     '页面名与浏览器标签名都取自配置 meta.title');

@@ -283,5 +283,31 @@ class CDP {
   console.log((rm.failed ? '断言生效  ' : '断言失效 ★') + '  [顶栏不刷新] 旧本地配置把「编辑」压回来 -> ' +
     (rm.failed ? 'FAILED' : 'ALL PASSED（说明 S 段没盯住）'));
   rm.lines.slice(0, 3).forEach(l => console.log(l));
+
+  /* ---------- N 例：「全部展开」只摊开顶层，不管深层 ----------
+     症状：点了「全部展开」，二三级的框还是收着的，看着像按钮没生效。 */
+  const RX_N = /  expandAll: \(\)=>\{\s*for\(const r of ROOTS\) \(function f\(n\)\{\s*n\.collapsed = false;\s*for\(const c of n\.children\) f\(c\);\s*\}\)\(r\);\s*layout\(\); view\(\); syncFoldBtns\(\);\s*\},/;
+  const mN = RX_N.exec(src);
+  if (!mN) throw new Error('找不到修好后的 expandAll（N 例失效）');
+  const BAD_N = '  expandAll: ()=>{\n' +
+    '    for(const r of ROOTS){ r.collapsed = false; for(const c of r.children) c.collapsed = false; }\n' +
+    '    layout(); view(); syncFoldBtns();\n  },';
+  fs.writeFileSync('_neg14.html', src.slice(0, mN.index) + BAD_N + src.slice(mN.index + mN[0].length));
+  const rn = runCheck('_neg14.html');
+  fs.unlinkSync('_neg14.html');
+  console.log((rn.failed ? '断言生效  ' : '断言失效 ★') + '  [全部展开不递归] 深层还收着，像没生效 -> ' +
+    (rn.failed ? 'FAILED' : 'ALL PASSED（说明 P2 段没盯住）'));
+  rn.lines.slice(0, 3).forEach(l => console.log(l));
+
+  /* ---------- O 例：顶栏按钮不分组、分段控件被拆散 ----------
+     症状：「只看体系 / 全部展开」变成两个互不相干的孤立按钮，看不出是一对。 */
+  const GRP_LINE = "      grp.className = 'grp' + (spec.seg ? ' seg' : '');";
+  if (src.indexOf(GRP_LINE) < 0) throw new Error('找不到分组类名那行（O 例失效）');
+  fs.writeFileSync('_neg15.html', src.replace(GRP_LINE, "      grp.className = 'grp';"));
+  const ro = runCheck('_neg15.html');
+  fs.unlinkSync('_neg15.html');
+  console.log((ro.failed ? '断言生效  ' : '断言失效 ★') + '  [两个按钮不连体] 看不出是一对 -> ' +
+    (ro.failed ? 'FAILED' : 'ALL PASSED（说明 P2 段没盯住）'));
+  ro.lines.slice(0, 3).forEach(l => console.log(l));
   process.exit(0);
 })();

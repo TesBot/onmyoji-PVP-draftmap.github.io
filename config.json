@@ -10,19 +10,31 @@
     "id": "fit",
     "label": "适应窗口",
     "action": "view",
-    "show": true
+    "show": true,
+    "group": "view"
    },
    {
     "id": "fold",
     "label": "只看体系",
     "action": "foldTop",
-    "show": true
+    "show": true,
+    "group": "fold",
+    "seg": true
+   },
+   {
+    "id": "expand",
+    "label": "全部展开",
+    "action": "expandAll",
+    "show": true,
+    "group": "fold",
+    "seg": true
    },
    {
     "id": "theme",
     "label": "暗色",
     "action": "toggleTheme",
-    "show": true
+    "show": true,
+    "group": "theme"
    }
   ],
   "interaction": {

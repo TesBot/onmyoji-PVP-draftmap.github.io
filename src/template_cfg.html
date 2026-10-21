@@ -44,6 +44,14 @@ button.on{background:var(--line);color:#fff;border-color:var(--line)}
 .tools button:active{transform:translateY(1px)}
 .tools button.on{opacity:1;background:var(--line);color:#fff;border-color:var(--line)}
 .tools button.on:hover{background:var(--line);opacity:.9}
+/* 顶栏按钮分组：组间一条竖分隔线；成对的（只看体系 / 全部展开）做成连体分段控件 */
+.tools .grp{display:flex;align-items:center;gap:8px}
+.tools .sep{flex:0 0 auto;width:1px;height:18px;background:var(--border)}
+.tools .grp.seg{gap:0}
+.tools .grp.seg button{position:relative}
+.tools .grp.seg button + button{margin-left:-1px;border-top-left-radius:0;border-bottom-left-radius:0}
+.tools .grp.seg button:first-child{border-top-right-radius:0;border-bottom-right-radius:0}
+.tools .grp.seg button:hover,.tools .grp.seg button.on{z-index:1}
 
 /* 方案标签栏 */
 #schemeBar{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:6px 16px;
@@ -1035,9 +1043,9 @@ function buildEl(n){
     ev.stopPropagation();
     if(ND_MOVED){ ND_MOVED = false; return; }       // 刚才是拖动，不是单击
     if(!n.children.length) return;
-    if(READONLY){ n.collapsed = !n.collapsed; layout(); return; }   // 只读版没有双击编辑，单击直接生效
+    if(READONLY){ n.collapsed = !n.collapsed; layout(); syncFoldBtns(); return; }   // 只读版没有双击编辑，单击直接生效
     if(ct){ clearTimeout(ct); ct = null; return; }        // 这是双击的第一下，交给 dblclick
-    ct = setTimeout(()=>{ ct = null; n.collapsed = !n.collapsed; layout(); }, CFG.ui.clickFoldDelay);
+    ct = setTimeout(()=>{ ct = null; n.collapsed = !n.collapsed; layout(); syncFoldBtns(); }, CFG.ui.clickFoldDelay);
   });
   el.addEventListener('dblclick', ev=>{
     ev.preventDefault();
@@ -1544,7 +1552,15 @@ const ACTIONS = {
       n.collapsed = d >= 1;
       for(const c of n.children) f(c, d+1);
     })(r,0);
-    layout(); view();
+    layout(); view(); syncFoldBtns();
+  },
+  /* 「全部展开」与「只看体系」是一对：一个收成骨架，一个全部摊开，都重新适配一次视图 */
+  expandAll: ()=>{
+    for(const r of ROOTS) (function f(n){
+      n.collapsed = false;
+      for(const c of n.children) f(c);
+    })(r);
+    layout(); view(); syncFoldBtns();
   },
   toggleTheme: (b)=>{
     THEME = (THEME === 'dark') ? 'light' : 'dark';
@@ -1553,6 +1569,32 @@ const ACTIONS = {
     applyVars();
   },
 };
+/* 当前折叠状态：fold = 一级以外全收着（只看体系）· expand = 全摊开 · mixed = 手工折过几处 */
+function foldState(){
+  let total = 0, col = 0;
+  for(const r of ROOTS) (function w(n, d){
+    if(d >= 1){ total++; if(n.collapsed) col++; }
+    for(const c of n.children) w(c, d+1);
+  })(r, 0);
+  if(!total) return 'none';
+  if(col === total) return 'fold';
+  if(col === 0) return 'expand';
+  return 'mixed';
+}
+/* 「只看体系 / 全部展开」是一对：哪个符合当前状态就点亮哪个，手折过之后两个都不亮 */
+function syncFoldBtns(){
+  const box = document.getElementById('tools');
+  if(!box) return;
+  const st = foldState();
+  // 用 dataset 找而不是属性选择器：按钮是配置生成的，id 可能没填，找不到就当没有
+  const set = (id, on)=>{
+    for(const b of box.querySelectorAll('button')){
+      if(b.dataset && b.dataset.id === id){ b.classList.toggle('on', !!on); return; }
+    }
+  };
+  set('fold', st === 'fold');
+  set('expand', st === 'expand');
+}
 function buildToolbar(){
   const box = document.getElementById('tools');
   box.innerHTML = '';
@@ -1560,14 +1602,26 @@ function buildToolbar(){
   const ttl = CFG.meta.title || '导引图';
   document.getElementById('ttl').textContent = ttl;
   if(document.title !== undefined) document.title = ttl;
+  // 按 group 分组：组间插一条竖分隔线；同一组里 seg 的几个渲染成连体的分段控件
+  let grp = null, grpKey = null;
   for(const spec of CFG.ui.buttons){
     if(spec.show === false) continue;
+    const key = spec.group || ('_' + (spec.id || ''));
+    if(key !== grpKey){
+      if(grp){ const s = document.createElement('span'); s.className = 'sep'; box.appendChild(s); }
+      grp = document.createElement('span');
+      grp.className = 'grp' + (spec.seg ? ' seg' : '');
+      box.appendChild(grp);
+      grpKey = key;
+    }
     const b = document.createElement('button');
     b.textContent = spec.label;
+    b.dataset.id = spec.id || '';
     if(spec.id === 'theme' && THEME === 'dark'){ b.textContent = '浅色'; b.classList.add('on'); }
     b.onclick = ()=>{ const fn = ACTIONS[spec.action]; if(fn) fn(b); };
-    box.appendChild(b);
+    grp.appendChild(b);
   }
+  syncFoldBtns();
 }
 
 /* --- 方案标签栏：切换 / 重命名 / 拖动排序 / 导出 / 导入 / 新建 --- */

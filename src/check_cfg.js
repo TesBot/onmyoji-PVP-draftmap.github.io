@@ -217,7 +217,9 @@ const api = new Function('document', 'window', 'console', 'prompt', 'confirm', '
   openCtx: openCtx, closeCtx: closeCtx, ctxItems: ctxItems, parentOf: parentOf,
   ctxTrigger: ctxTrigger, ctxMenuEl: ()=>ctxMenu,
   nodeOffset: nodeOffset, getND: ()=>ND, getNDMoved: ()=>ND_MOVED,
-  setNDMoved: v=>{ ND_MOVED = v; }, NODE_DRAG_MIN: NODE_DRAG_MIN
+  setNDMoved: v=>{ ND_MOVED = v; }, NODE_DRAG_MIN: NODE_DRAG_MIN,
+  ACTIONS: ACTIONS, buildToolbar: buildToolbar,
+  foldState: foldState, syncFoldBtns: syncFoldBtns
 };`)(document, window, console, stubPrompt, stubConfirm, stubAlert, stubLS, undefined, location);
 
 let FAIL = 0;
@@ -1292,7 +1294,9 @@ console.log('  配置表：渲染 / 兜底 / 行编辑 / 方案隔离 / 随方�
   console.log('\n== P. 只看体系：按需一级级展开 ==');
   api.setCFG(api.validate(JSON.parse(JSON.stringify(CFG0))));
   api.rebuild();
-  const foldBtn = reg['tools'].children.find(b => b.textContent === '只看体系');
+  // 按钮现在按 group 包在 .grp 里，得往下找一层
+  const toolBtns = () => reg['tools'].querySelectorAll('button');
+  const foldBtn = [...toolBtns()].find(b => b.textContent === '只看体系');
   ok(!!foldBtn, '顶栏有「只看体系」按钮');
   foldBtn.onclick();
   // 用户确认这两个入口不需要了：顶栏按钮、动作表、面板实现都不该再出现
@@ -1320,6 +1324,70 @@ console.log('  配置表：渲染 / 兜底 / 行编辑 / 方案隔离 / 随方�
     ok(visCount() === mid + deeper.children.length, '再展开下一级才露出再下一层（可逐级按需展开）');
   }
   console.log('  逐级展开：收起时连子孙一起收，展开一层露一层 OK');
+
+  /* ---------- P2. 顶栏重排：只看体系 / 全部展开 成对，按组分隔 ---------- */
+  console.log('\n== P2. 顶栏布局：全部展开 与 只看体系 成对 ==');
+  const btnOf = t => [...toolBtns()].find(b => b.textContent === t);
+  const isOn = t => { const b = btnOf(t); return !!b && b.classList.contains('on'); };
+  const expBtn = btnOf('全部展开');
+  ok(!!expBtn, '顶栏有「全部展开」按钮');
+
+  // 成对：两个按钮必须在同一个连体分段组里，且中间不被别的按钮插进来
+  // （桩的 querySelector 只认单个类名，复合选择器这里手工筛）
+  const hasCls = (e, c) => (e.className || '').split(/\s+/).indexOf(c) >= 0;
+  const groups0 = reg['tools'].querySelectorAll('.grp');
+  const segGrp = groups0.filter(g => hasCls(g, 'seg'));
+  ok(segGrp.length >= 1, '顶栏里有连体的分段控件组（.grp.seg）');
+  const pairGrp = segGrp.find(g => [...g.children].some(b => b.textContent === '只看体系'));
+  ok(!!pairGrp && [...pairGrp.children].some(b => b.textContent === '全部展开'),
+    '「只看体系」与「全部展开」在同一个分段组里（成对出现）');
+  ok(!!pairGrp && [...pairGrp.children].filter(b => b.tagName === 'BUTTON').length === 2,
+    '这个组里只有这两个按钮，不夹别的（实际 ' + (pairGrp ? [...pairGrp.children].length : 0) + ' 个）');
+  // 分组：按钮按 group 归拢，组间有竖分隔线
+  const groups = groups0;
+  ok(groups.length === reg['tools'].querySelectorAll('.sep').length + 1,
+    '组间插分隔线（' + groups.length + ' 组 / ' + reg['tools'].querySelectorAll('.sep').length + ' 条线）');
+  const pubCount = (JSON.parse(html.match(/<script id="cfg-embed"[^>]*>([\s\S]*?)<\/script>/)[1]
+    .replace(/<\\\//g, '</')).ui || {}).buttons.length;
+  ok(groups.length >= 2 && groups.length < pubCount,
+    '按钮按 group 归成几组而不是一字排开（实际 ' + groups.length + ' 组 / 共 ' + pubCount + ' 个按钮）');
+  ok([...toolBtns()].every(b => !!b.dataset.id), '每个按钮都带 data-id（状态同步要靠它找按钮）');
+
+  // 全部展开：连深层一起摊开，并把「全部展开」点亮、只看体系熄灭
+  expBtn.onclick();
+  const stillCol = allInst().filter(n => n.collapsed);
+  ok(stillCol.length === 0, '「全部展开」后没有收起的节点（实际还有 ' + stillCol.length + ' 个）');
+  ok(api.foldState() === 'expand', 'foldState() 认出当前是全展开');
+  ok(isOn('全部展开') && !isOn('只看体系'), '全展开后「全部展开」点亮、「只看体系」熄灭');
+  const expanded = visCount();
+  ok(expanded === allInst().length,
+    '全展开时可见节点 = 全部节点（' + expanded + ' / ' + allInst().length + '）');
+
+  // 只看体系：回到骨架，按钮状态对调
+  foldBtn.onclick();
+  ok(isOn('只看体系') && !isOn('全部展开'), '只看体系后按钮状态对调');
+  ok(api.foldState() === 'fold', 'foldState() 认出当前是只看体系');
+
+  // 手工折了几处之后两个都不亮（避免「看着亮着其实不是那样」的误导）
+  const one = allInst().find(n => n.d >= 1);
+  one.collapsed = !one.collapsed; api.layout(); api.syncFoldBtns();
+  ok(api.foldState() === 'mixed' && !isOn('只看体系') && !isOn('全部展开'),
+    '手工折过之后两个按钮都不亮（mixed，实际 ' + api.foldState() + '）');
+  // 两级来回切必须收敛到同一张图，不能一会儿多一会儿少
+  const back1 = (()=>{ expBtn.onclick(); return visCount(); })();
+  const back2 = (()=>{ foldBtn.onclick(); expBtn.onclick(); return visCount(); })();
+  ok(back1 === back2 && back1 === allInst().length,
+    '只看体系 → 全部展开 来回切，收敛到同一张图（' + back1 + ' / ' + back2 + '）');
+  // 静态自检：两个按钮的 group 一致、都标了 seg（否则渲染不出连体）
+  // EMB 在 S 段才建，这里自己解一份内嵌配置
+  const pubBtns = (JSON.parse(html.match(/<script id="cfg-embed"[^>]*>([\s\S]*?)<\/script>/)[1]
+    .replace(/<\\\//g, '</')).ui || {}).buttons || [];
+  const bf = pubBtns.find(b => b.id === 'fold'), be = pubBtns.find(b => b.id === 'expand');
+  ok(!!bf && !!be && bf.group === be.group && bf.seg === true && be.seg === true,
+    '配置里 fold / expand 同组且都标了 seg');
+  ok(/function expandAll|expandAll:\s*\(\)/.test(html) && /ACTIONS\[spec\.action\]/.test(html),
+    '顶栏按钮走配置驱动（源码里有 expandAll 动作 + 按 action 派发）');
+  console.log('  成对分段控件 + 分组分隔 + 状态点亮 + 来回切收敛 OK');
 
   /* ================= Q. 点空白关面板：判定必须在捕获阶段 =================
      真 bug：面板里点头像格子时，格子自己的 onclick 会 grid.innerHTML='' 重建整片网格，
@@ -1474,8 +1542,9 @@ console.log('  配置表：渲染 / 兜底 / 行编辑 / 方案隔离 / 随方�
   ];
   const oldUi = api.validate({ ui: { buttons: JSON.parse(JSON.stringify(oldBtns)) } });
   const uiLabels = (oldUi.ui.buttons || []).map(b => b.label).join('/');
-  ok(uiLabels === '适应窗口/只看体系/暗色',
-    '本地存过的旧顶栏（含 编辑 / 配置）被发布版顶掉（实际 ' + uiLabels + '）');
+  const pubLabels = (EMB.ui.buttons || []).map(b => b.label).join('/');
+  ok(uiLabels === pubLabels,
+    '本地存过的旧顶栏（含 编辑 / 配置）被发布版顶掉（实际 ' + uiLabels + ' / 期望 ' + pubLabels + '）');
   ok(!(oldUi.ui.buttons || []).some(b => b.action === 'toggleEdit' || b.action === 'openConfig'),
     '刷新后不再有 toggleEdit / openConfig 这两个动作');
   ok(api.getWARN().some(w => w.indexOf('顶栏按钮已按发布版刷新') >= 0), '刷新时给出一次告警说明');

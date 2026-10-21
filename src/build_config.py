@@ -102,10 +102,13 @@ config = {
 
     'ui': {
         'showHeader': True,
+        # 顶栏按钮由这份表驱动：group 决定分组（组间一条竖分隔线），
+        # seg=True 的组渲染成连体的分段控件——「只看体系 / 全部展开」就是这么配对的。
         'buttons': [
-            {'id': 'fit',   'label': '适应窗口', 'action': 'view',         'show': True},
-            {'id': 'fold',  'label': '只看体系', 'action': 'foldTop',      'show': True},
-            {'id': 'theme', 'label': '暗色',     'action': 'toggleTheme',  'show': True},
+            {'id': 'fit',    'label': '适应窗口', 'action': 'view',        'show': True, 'group': 'view'},
+            {'id': 'fold',   'label': '只看体系', 'action': 'foldTop',     'show': True, 'group': 'fold', 'seg': True},
+            {'id': 'expand', 'label': '全部展开', 'action': 'expandAll',   'show': True, 'group': 'fold', 'seg': True},
+            {'id': 'theme',  'label': '暗色',     'action': 'toggleTheme', 'show': True, 'group': 'theme'},
         ],
         'interaction': {
             'clickFold': True, 'dblclickFocus': True, 'wheelZoom': True,
