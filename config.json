@@ -1,0 +1,2176 @@
+{
+ "meta": {
+  "title": "翻牌上卡导引图",
+  "version": 1
+ },
+ "ui": {
+  "showHeader": true,
+  "buttons": [
+   {
+    "id": "fit",
+    "label": "适应窗口",
+    "action": "view",
+    "show": true
+   },
+   {
+    "id": "fold",
+    "label": "只看体系",
+    "action": "foldTop",
+    "show": true
+   },
+   {
+    "id": "theme",
+    "label": "暗色",
+    "action": "toggleTheme",
+    "show": true
+   }
+  ],
+  "interaction": {
+   "clickFold": true,
+   "dblclickFocus": true,
+   "wheelZoom": true,
+   "dragPan": true,
+   "keyboardPan": true,
+   "nodeDrag": true
+  },
+  "clickFoldDelay": 160
+ },
+ "layout": {
+  "rev": 1,
+  "hGap": 54,
+  "vGap": 13,
+  "branchGap": 26,
+  "groupGap": 120,
+  "padX": 30,
+  "padTop": 40,
+  "canvasPad": 60,
+  "defaultExpanded": true,
+  "zoneEnabled": true,
+  "sharedNodeMode": "merge",
+  "sharedTitleMax": 10,
+  "columnMode": "depth",
+  "readableScale": 0.85,
+  "minScale": 0.15,
+  "maxScale": 3,
+  "fitThreshold": 0.5,
+  "lineWidth": 2
+ },
+ "style": {
+  "font": {
+   "node": 15,
+   "branch": 17,
+   "root": 22,
+   "chip": 12,
+   "badge": 11
+  },
+  "lineHeight": 1.45,
+  "node": {
+   "minWidth": 190,
+   "maxWidth": 404,
+   "padX": 12,
+   "padTop": 9,
+   "padBottom": 10,
+   "radius": 7
+  },
+  "avatar": {
+   "size": 40,
+   "gap": 6,
+   "radius": 7,
+   "marginBottom": 8
+  },
+  "camp": {
+   "enemy": {
+    "bg": "#F6DCD8",
+    "fg": "#7A1F16",
+    "border": "#B03A2E",
+    "line": "#B03A2E"
+   },
+   "mine": {
+    "bg": "#DCE9F7",
+    "fg": "#1B3F6B",
+    "border": "#2C5F9E",
+    "line": "#2C5F9E"
+   },
+   "neutral": {
+    "bg": "#E7EBED",
+    "fg": "#1F2328",
+    "border": "#C7CDD2",
+    "line": "#3679E7"
+   },
+   "root": {
+    "bg": "#367AE7",
+    "fg": "#FFFFFF",
+    "border": "#3679E7",
+    "line": "#3679E7"
+   },
+   "free": {
+    "bg": "",
+    "fg": "",
+    "border": "#3679E7",
+    "line": "#3679E7"
+   }
+  },
+  "theme": {
+   "light": {
+    "page": "#FFFFFF",
+    "panel": "#F4F6F8",
+    "text": "#1F2328",
+    "border": "#D7DCE2",
+    "line": "#3679E7",
+    "neutralBg": "#E7EBED",
+    "neutralFg": "#1F2328",
+    "neutralBorder": "#C7CDD2"
+   },
+   "dark": {
+    "page": "#0F1419",
+    "panel": "#161B22",
+    "text": "#E6EDF3",
+    "border": "#2C3540",
+    "line": "#5C9BF5",
+    "neutralBg": "#2A323B",
+    "neutralFg": "#E6EDF3",
+    "neutralBorder": "#3A444F"
+   }
+  },
+  "startTheme": "light",
+  "chipBg": "rgba(127,127,127,.15)",
+  "badgeBg": "#3679E7",
+  "badgeFg": "#FFFFFF",
+  "missing": {
+   "mark": "?",
+   "borderStyle": "dashed",
+   "bg": "rgba(176,58,46,.10)"
+  },
+  "zoneBg": "rgba(127,127,127,.045)",
+  "zoneBorder": "rgba(127,127,127,.10)",
+  "zoneRadius": 12
+ },
+ "assets": {
+  "avatarDir": "assets/shishen/avatars",
+  "avatarIndex": {
+   "云间不见岳": "assets/shishen/avatars/SP/云间不见岳.png",
+   "修罗鬼童丸": "assets/shishen/avatars/SP/修罗鬼童丸.png",
+   "初翎山风": "assets/shishen/avatars/SP/初翎山风.png",
+   "因幡辉夜姬": "assets/shishen/avatars/SP/因幡辉夜姬.png",
+   "夜溟彼岸花": "assets/shishen/avatars/SP/夜溟彼岸花.png",
+   "大夜摩天阎魔": "assets/shishen/avatars/SP/大夜摩天阎魔.png",
+   "天剑韧心鬼切": "assets/shishen/avatars/SP/天剑韧心鬼切.png",
+   "天火命铃彦姬": "assets/shishen/avatars/SP/天火命铃彦姬.png",
+   "妙主九命猫": "assets/shishen/avatars/SP/妙主九命猫.png",
+   "寻森小鹿男": "assets/shishen/avatars/SP/寻森小鹿男.png",
+   "少羽大天狗": "assets/shishen/avatars/SP/少羽大天狗.png",
+   "待宵姑获鸟": "assets/shishen/avatars/SP/待宵姑获鸟.png",
+   "御怨般若": "assets/shishen/avatars/SP/御怨般若.png",
+   "心友犬神": "assets/shishen/avatars/SP/心友犬神.png",
+   "心狩鬼女红叶": "assets/shishen/avatars/SP/心狩鬼女红叶.png",
+   "时曜泷夜叉姬": "assets/shishen/avatars/SP/时曜泷夜叉姬.png",
+   "晨晖惠比寿": "assets/shishen/avatars/SP/晨晖惠比寿.png",
+   "晴思日和坊": "assets/shishen/avatars/SP/晴思日和坊.png",
+   "本真三尾狐": "assets/shishen/avatars/SP/本真三尾狐.png",
+   "梦寻山兔": "assets/shishen/avatars/SP/梦寻山兔.png",
+   "梦山白藏主": "assets/shishen/avatars/SP/梦山白藏主.png",
+   "梦引蝴蝶精": "assets/shishen/avatars/SP/梦引蝴蝶精.png",
+   "流光追月神": "assets/shishen/avatars/SP/流光追月神.png",
+   "浮世青行灯": "assets/shishen/avatars/SP/浮世青行灯.png",
+   "渺念萤草": "assets/shishen/avatars/SP/渺念萤草.png",
+   "灼华桃花妖": "assets/shishen/avatars/SP/灼华桃花妖.png",
+   "炼狱茨木童子": "assets/shishen/avatars/SP/炼狱茨木童子.png",
+   "烬天玉藻前": "assets/shishen/avatars/SP/烬天玉藻前.png",
+   "瑶音紧那罗": "assets/shishen/avatars/SP/瑶音紧那罗.png",
+   "百羽凤凰火": "assets/shishen/avatars/SP/百羽凤凰火.png",
+   "神启荒": "assets/shishen/avatars/SP/神启荒.png",
+   "神堕八岐大蛇": "assets/shishen/avatars/SP/神堕八岐大蛇.png",
+   "神酿星熊童子": "assets/shishen/avatars/SP/神酿星熊童子.png",
+   "禅心云外镜": "assets/shishen/avatars/SP/禅心云外镜.png",
+   "福悦座敷童子": "assets/shishen/avatars/SP/福悦座敷童子.png",
+   "稻荷神御馔津": "assets/shishen/avatars/SP/稻荷神御馔津.png",
+   "空相面灵气": "assets/shishen/avatars/SP/空相面灵气.png",
+   "纺愿缘结神": "assets/shishen/avatars/SP/纺愿缘结神.png",
+   "绘世花鸟卷": "assets/shishen/avatars/SP/绘世花鸟卷.png",
+   "缚骨清姬": "assets/shishen/avatars/SP/缚骨清姬.png",
+   "聆海金鱼姬": "assets/shishen/avatars/SP/聆海金鱼姬.png",
+   "苍风一目连": "assets/shishen/avatars/SP/苍风一目连.png",
+   "蚀月吸血姬": "assets/shishen/avatars/SP/蚀月吸血姬.png",
+   "蝉冰雪女": "assets/shishen/avatars/SP/蝉冰雪女.png",
+   "赤影妖刀姬": "assets/shishen/avatars/SP/赤影妖刀姬.png",
+   "遥念烟烟罗": "assets/shishen/avatars/SP/遥念烟烟罗.png",
+   "骁浪荒川之主": "assets/shishen/avatars/SP/骁浪荒川之主.png",
+   "鬼王酒吞童子": "assets/shishen/avatars/SP/鬼王酒吞童子.png",
+   "鲸汐千姬": "assets/shishen/avatars/SP/鲸汐千姬.png",
+   "麓铭大岳丸": "assets/shishen/avatars/SP/麓铭大岳丸.png",
+   "龙吟铃鹿御前": "assets/shishen/avatars/SP/龙吟铃鹿御前.png",
+   "一目连": "assets/shishen/avatars/SSR/一目连.png",
+   "不相狐禅": "assets/shishen/avatars/SSR/不相狐禅.png",
+   "不知火": "assets/shishen/avatars/SSR/不知火.png",
+   "不见岳": "assets/shishen/avatars/SSR/不见岳.png",
+   "两面佛": "assets/shishen/avatars/SSR/两面佛.png",
+   "云外镜": "assets/shishen/avatars/SSR/云外镜.png",
+   "伊邪那美": "assets/shishen/avatars/SSR/伊邪那美.png",
+   "八岐大蛇": "assets/shishen/avatars/SSR/八岐大蛇.png",
+   "初音未来": "assets/shishen/avatars/SSR/初音未来.png",
+   "千姬": "assets/shishen/avatars/SSR/千姬.png",
+   "卑弥呼": "assets/shishen/avatars/SSR/卑弥呼.png",
+   "卖药郎": "assets/shishen/avatars/SSR/卖药郎.png",
+   "咲耶": "assets/shishen/avatars/SSR/咲耶.png",
+   "嘴平伊之助": "assets/shishen/avatars/SSR/嘴平伊之助.png",
+   "坂田银时": "assets/shishen/avatars/SSR/坂田银时.png",
+   "夏目&猫老师": "assets/shishen/avatars/SSR/夏目&猫老师.png",
+   "夜刀神": "assets/shishen/avatars/SSR/夜刀神.png",
+   "大天狗": "assets/shishen/avatars/SSR/大天狗.png",
+   "大岳丸": "assets/shishen/avatars/SSR/大岳丸.png",
+   "天照": "assets/shishen/avatars/SSR/天照.png",
+   "奴良陆生": "assets/shishen/avatars/SSR/奴良陆生.png",
+   "妖刀姬": "assets/shishen/avatars/SSR/妖刀姬.png",
+   "孔雀明王": "assets/shishen/avatars/SSR/孔雀明王.png",
+   "季": "assets/shishen/avatars/SSR/季.png",
+   "寻香行": "assets/shishen/avatars/SSR/寻香行.png",
+   "封阳君": "assets/shishen/avatars/SSR/封阳君.png",
+   "小鹿男": "assets/shishen/avatars/SSR/小鹿男.png",
+   "山风": "assets/shishen/avatars/SSR/山风.png",
+   "巡音流歌": "assets/shishen/avatars/SSR/巡音流歌.png",
+   "市加美": "assets/shishen/avatars/SSR/市加美.png",
+   "帝释天": "assets/shishen/avatars/SSR/帝释天.png",
+   "平将门": "assets/shishen/avatars/SSR/平将门.png",
+   "彼岸花": "assets/shishen/avatars/SSR/彼岸花.png",
+   "御馔津": "assets/shishen/avatars/SSR/御馔津.png",
+   "思金神": "assets/shishen/avatars/SSR/思金神.png",
+   "我妻善逸": "assets/shishen/avatars/SSR/我妻善逸.png",
+   "月读": "assets/shishen/avatars/SSR/月读.png",
+   "木之本樱": "assets/shishen/avatars/SSR/木之本樱.png",
+   "杀生丸": "assets/shishen/avatars/SSR/杀生丸.png",
+   "李小狼": "assets/shishen/avatars/SSR/李小狼.png",
+   "桔梗": "assets/shishen/avatars/SSR/桔梗.png",
+   "歌留多": "assets/shishen/avatars/SSR/歌留多.png",
+   "毗沙门天": "assets/shishen/avatars/SSR/毗沙门天.png",
+   "泷": "assets/shishen/avatars/SSR/泷.png",
+   "泷夜叉姬": "assets/shishen/avatars/SSR/泷夜叉姬.png",
+   "洛天依": "assets/shishen/avatars/SSR/洛天依.png",
+   "灶门炭治郎": "assets/shishen/avatars/SSR/灶门炭治郎.png",
+   "灶门祢豆子": "assets/shishen/avatars/SSR/灶门祢豆子.png",
+   "犬夜叉": "assets/shishen/avatars/SSR/犬夜叉.png",
+   "猫川": "assets/shishen/avatars/SSR/猫川.png",
+   "玉藻前": "assets/shishen/avatars/SSR/玉藻前.png",
+   "申屠子夜": "assets/shishen/avatars/SSR/申屠子夜.png",
+   "白藏主": "assets/shishen/avatars/SSR/白藏主.png",
+   "石长姬": "assets/shishen/avatars/SSR/石长姬.png",
+   "神乐&定春": "assets/shishen/avatars/SSR/神乐&定春.png",
+   "神无月": "assets/shishen/avatars/SSR/神无月.png",
+   "祸津神": "assets/shishen/avatars/SSR/祸津神.png",
+   "紧那罗": "assets/shishen/avatars/SSR/紧那罗.png",
+   "缘结神": "assets/shishen/avatars/SSR/缘结神.png",
+   "花鸟卷": "assets/shishen/avatars/SSR/花鸟卷.png",
+   "茨木童子": "assets/shishen/avatars/SSR/茨木童子.png",
+   "荒": "assets/shishen/avatars/SSR/荒.png",
+   "荒川之主": "assets/shishen/avatars/SSR/荒川之主.png",
+   "荒骷髅": "assets/shishen/avatars/SSR/荒骷髅.png",
+   "葛叶": "assets/shishen/avatars/SSR/葛叶.png",
+   "言和": "assets/shishen/avatars/SSR/言和.png",
+   "言灵": "assets/shishen/avatars/SSR/言灵.png",
+   "辉夜姬": "assets/shishen/avatars/SSR/辉夜姬.png",
+   "酒吞童子": "assets/shishen/avatars/SSR/酒吞童子.png",
+   "铃彦姬": "assets/shishen/avatars/SSR/铃彦姬.png",
+   "铃鹿御前": "assets/shishen/avatars/SSR/铃鹿御前.png",
+   "镜音铃·连": "assets/shishen/avatars/SSR/镜音铃·连.png",
+   "闻人翊悬": "assets/shishen/avatars/SSR/闻人翊悬.png",
+   "阎魔": "assets/shishen/avatars/SSR/阎魔.png",
+   "阿修罗": "assets/shishen/avatars/SSR/阿修罗.png",
+   "雪御前": "assets/shishen/avatars/SSR/雪御前.png",
+   "雪童子": "assets/shishen/avatars/SSR/雪童子.png",
+   "青行灯": "assets/shishen/avatars/SSR/青行灯.png",
+   "面灵气": "assets/shishen/avatars/SSR/面灵气.png",
+   "须佐之男": "assets/shishen/avatars/SSR/须佐之男.png",
+   "食灵": "assets/shishen/avatars/SSR/食灵.png",
+   "饭笥": "assets/shishen/avatars/SSR/饭笥.png",
+   "鬼切": "assets/shishen/avatars/SSR/鬼切.png",
+   "鬼灯": "assets/shishen/avatars/SSR/鬼灯.png",
+   "鬼童丸": "assets/shishen/avatars/SSR/鬼童丸.png",
+   "鬼金羊": "assets/shishen/avatars/SSR/鬼金羊.png",
+   "黑崎一护": "assets/shishen/avatars/SSR/黑崎一护.png",
+   "龙珏": "assets/shishen/avatars/SSR/龙珏.png",
+   "一反木绵": "assets/shishen/avatars/SR/一反木绵.png",
+   "万年竹": "assets/shishen/avatars/SR/万年竹.png",
+   "久次良": "assets/shishen/avatars/SR/久次良.png",
+   "书翁": "assets/shishen/avatars/SR/书翁.png",
+   "二口女": "assets/shishen/avatars/SR/二口女.png",
+   "人面树": "assets/shishen/avatars/SR/人面树.png",
+   "以津真天": "assets/shishen/avatars/SR/以津真天.png",
+   "傀儡师": "assets/shishen/avatars/SR/傀儡师.png",
+   "入内雀": "assets/shishen/avatars/SR/入内雀.png",
+   "入殓师": "assets/shishen/avatars/SR/入殓师.png",
+   "凤凰火": "assets/shishen/avatars/SR/凤凰火.png",
+   "判官": "assets/shishen/avatars/SR/判官.png",
+   "化鲸": "assets/shishen/avatars/SR/化鲸.png",
+   "匣中少女": "assets/shishen/avatars/SR/匣中少女.png",
+   "吸血姬": "assets/shishen/avatars/SR/吸血姬.png",
+   "夜叉": "assets/shishen/avatars/SR/夜叉.png",
+   "天逆每": "assets/shishen/avatars/SR/天逆每.png",
+   "妖狐": "assets/shishen/avatars/SR/妖狐.png",
+   "妖琴师": "assets/shishen/avatars/SR/妖琴师.png",
+   "姑获鸟": "assets/shishen/avatars/SR/姑获鸟.png",
+   "孟婆": "assets/shishen/avatars/SR/孟婆.png",
+   "小松丸": "assets/shishen/avatars/SR/小松丸.png",
+   "川猿": "assets/shishen/avatars/SR/川猿.png",
+   "弈": "assets/shishen/avatars/SR/弈.png",
+   "惠比寿": "assets/shishen/avatars/SR/惠比寿.png",
+   "慧明灯": "assets/shishen/avatars/SR/慧明灯.png",
+   "於菊虫": "assets/shishen/avatars/SR/於菊虫.png",
+   "日和坊": "assets/shishen/avatars/SR/日和坊.png",
+   "星熊童子": "assets/shishen/avatars/SR/星熊童子.png",
+   "朽木露琪亚": "assets/shishen/avatars/SR/朽木露琪亚.png",
+   "桃花妖": "assets/shishen/avatars/SR/桃花妖.png",
+   "樱花妖": "assets/shishen/avatars/SR/樱花妖.png",
+   "海坊主": "assets/shishen/avatars/SR/海坊主.png",
+   "海忍": "assets/shishen/avatars/SR/海忍.png",
+   "清姬": "assets/shishen/avatars/SR/清姬.png",
+   "湍津姬": "assets/shishen/avatars/SR/湍津姬.png",
+   "灵海蝶": "assets/shishen/avatars/SR/灵海蝶.png",
+   "烟烟罗": "assets/shishen/avatars/SR/烟烟罗.png",
+   "犬神": "assets/shishen/avatars/SR/犬神.png",
+   "猫掌柜": "assets/shishen/avatars/SR/猫掌柜.png",
+   "白狼": "assets/shishen/avatars/SR/白狼.png",
+   "白童子": "assets/shishen/avatars/SR/白童子.png",
+   "百目鬼": "assets/shishen/avatars/SR/百目鬼.png",
+   "盗人神": "assets/shishen/avatars/SR/盗人神.png",
+   "粉婆婆": "assets/shishen/avatars/SR/粉婆婆.png",
+   "纸舞": "assets/shishen/avatars/SR/纸舞.png",
+   "络新妇": "assets/shishen/avatars/SR/络新妇.png",
+   "般若": "assets/shishen/avatars/SR/般若.png",
+   "薰": "assets/shishen/avatars/SR/薰.png",
+   "蝎女": "assets/shishen/avatars/SR/蝎女.png",
+   "蟹姬": "assets/shishen/avatars/SR/蟹姬.png",
+   "跳跳哥哥": "assets/shishen/avatars/SR/跳跳哥哥.png",
+   "迦楼罗": "assets/shishen/avatars/SR/迦楼罗.png",
+   "追月神": "assets/shishen/avatars/SR/追月神.png",
+   "金鱼姬": "assets/shishen/avatars/SR/金鱼姬.png",
+   "镰鼬": "assets/shishen/avatars/SR/镰鼬.png",
+   "阿香": "assets/shishen/avatars/SR/阿香.png",
+   "雪女": "assets/shishen/avatars/SR/雪女.png",
+   "青坊主": "assets/shishen/avatars/SR/青坊主.png",
+   "风狸": "assets/shishen/avatars/SR/风狸.png",
+   "食梦貘": "assets/shishen/avatars/SR/食梦貘.png",
+   "饴细工": "assets/shishen/avatars/SR/饴细工.png",
+   "骨女": "assets/shishen/avatars/SR/骨女.png",
+   "鬼使白": "assets/shishen/avatars/SR/鬼使白.png",
+   "鬼使黑": "assets/shishen/avatars/SR/鬼使黑.png",
+   "鬼女红叶": "assets/shishen/avatars/SR/鬼女红叶.png",
+   "鸩": "assets/shishen/avatars/SR/鸩.png",
+   "黑童子": "assets/shishen/avatars/SR/黑童子.png",
+   "三尾狐": "assets/shishen/avatars/R/三尾狐.png",
+   "丑时之女": "assets/shishen/avatars/R/丑时之女.png",
+   "九命猫": "assets/shishen/avatars/R/九命猫.png",
+   "兔丸": "assets/shishen/avatars/R/兔丸.png",
+   "兵俑": "assets/shishen/avatars/R/兵俑.png",
+   "古笼火": "assets/shishen/avatars/R/古笼火.png",
+   "垢尝": "assets/shishen/avatars/R/垢尝.png",
+   "天井下": "assets/shishen/avatars/R/天井下.png",
+   "小袖之手": "assets/shishen/avatars/R/小袖之手.png",
+   "山兔": "assets/shishen/avatars/R/山兔.png",
+   "山童": "assets/shishen/avatars/R/山童.png",
+   "巫蛊师": "assets/shishen/avatars/R/巫蛊师.png",
+   "座敷童子": "assets/shishen/avatars/R/座敷童子.png",
+   "影鳄": "assets/shishen/avatars/R/影鳄.png",
+   "数珠": "assets/shishen/avatars/R/数珠.png",
+   "椒图": "assets/shishen/avatars/R/椒图.png",
+   "武士之灵": "assets/shishen/avatars/R/武士之灵.png",
+   "河童": "assets/shishen/avatars/R/河童.png",
+   "独眼小僧": "assets/shishen/avatars/R/独眼小僧.png",
+   "狸猫": "assets/shishen/avatars/R/狸猫.png",
+   "童女": "assets/shishen/avatars/R/童女.png",
+   "童男": "assets/shishen/avatars/R/童男.png",
+   "管狐": "assets/shishen/avatars/R/管狐.png",
+   "萤草": "assets/shishen/avatars/R/萤草.png",
+   "虫师": "assets/shishen/avatars/R/虫师.png",
+   "蜜桃&芥子": "assets/shishen/avatars/R/蜜桃&芥子.png",
+   "蝴蝶精": "assets/shishen/avatars/R/蝴蝶精.png",
+   "觉": "assets/shishen/avatars/R/觉.png",
+   "跳跳妹妹": "assets/shishen/avatars/R/跳跳妹妹.png",
+   "跳跳弟弟": "assets/shishen/avatars/R/跳跳弟弟.png",
+   "铁鼠": "assets/shishen/avatars/R/铁鼠.png",
+   "雨女": "assets/shishen/avatars/R/雨女.png",
+   "青蛙瓷器": "assets/shishen/avatars/R/青蛙瓷器.png",
+   "食发鬼": "assets/shishen/avatars/R/食发鬼.png",
+   "饿鬼": "assets/shishen/avatars/R/饿鬼.png",
+   "首无": "assets/shishen/avatars/R/首无.png",
+   "鲤鱼精": "assets/shishen/avatars/R/鲤鱼精.png",
+   "鸦天狗": "assets/shishen/avatars/R/鸦天狗.png",
+   "一目连呱": "assets/shishen/avatars/N/一目连呱.png",
+   "两面佛呱": "assets/shishen/avatars/N/两面佛呱.png",
+   "唐纸伞妖": "assets/shishen/avatars/N/唐纸伞妖.png",
+   "大天狗呱": "assets/shishen/avatars/N/大天狗呱.png",
+   "天邪鬼绿": "assets/shishen/avatars/N/天邪鬼绿.png",
+   "天邪鬼赤": "assets/shishen/avatars/N/天邪鬼赤.png",
+   "天邪鬼青": "assets/shishen/avatars/N/天邪鬼青.png",
+   "天邪鬼黄": "assets/shishen/avatars/N/天邪鬼黄.png",
+   "妖刀姬呱": "assets/shishen/avatars/N/妖刀姬呱.png",
+   "寄生魂": "assets/shishen/avatars/N/寄生魂.png",
+   "小鹿男呱": "assets/shishen/avatars/N/小鹿男呱.png",
+   "帚神": "assets/shishen/avatars/N/帚神.png",
+   "彼岸花呱": "assets/shishen/avatars/N/彼岸花呱.png",
+   "御馔津呱": "assets/shishen/avatars/N/御馔津呱.png",
+   "提灯小僧": "assets/shishen/avatars/N/提灯小僧.png",
+   "涂壁": "assets/shishen/avatars/N/涂壁.png",
+   "灯笼鬼": "assets/shishen/avatars/N/灯笼鬼.png",
+   "玉藻前呱": "assets/shishen/avatars/N/玉藻前呱.png",
+   "生剥鬼": "assets/shishen/avatars/N/生剥鬼.png",
+   "盗墓小鬼": "assets/shishen/avatars/N/盗墓小鬼.png",
+   "花鸟卷呱": "assets/shishen/avatars/N/花鸟卷呱.png",
+   "茨木呱": "assets/shishen/avatars/N/茨木呱.png",
+   "荒呱": "assets/shishen/avatars/N/荒呱.png",
+   "荒川呱": "assets/shishen/avatars/N/荒川呱.png",
+   "赤舌": "assets/shishen/avatars/N/赤舌.png",
+   "辉夜姬呱": "assets/shishen/avatars/N/辉夜姬呱.png",
+   "酒吞呱": "assets/shishen/avatars/N/酒吞呱.png",
+   "阎魔呱": "assets/shishen/avatars/N/阎魔呱.png",
+   "雪童子呱": "assets/shishen/avatars/N/雪童子呱.png",
+   "青行灯呱": "assets/shishen/avatars/N/青行灯呱.png",
+   "妖刀姬·绯夜猎刃": "assets/shishen/avatars/UR/妖刀姬·绯夜猎刃.png"
+  },
+  "placeholders": {
+   "__藤原道长__": "阴阳师 · 藤原道长",
+   "__神乐__": "阴阳师 · 神乐"
+  }
+ },
+ "aliases": {
+  "禅吞": [
+   "禅心云外镜",
+   "鬼王酒吞童子"
+  ],
+  "鬼吞": [
+   "鬼王酒吞童子"
+  ],
+  "神卑石": [
+   "神无月",
+   "卑弥呼",
+   "石长姬"
+  ],
+  "神卑": [
+   "神无月",
+   "卑弥呼"
+  ],
+  "神石": [
+   "神无月",
+   "石长姬"
+  ],
+  "神平": [
+   "神无月",
+   "平将门"
+  ],
+  "神龙": [
+   "神无月",
+   "龙珏"
+  ],
+  "云熊": [
+   "云外镜",
+   "神酿星熊童子"
+  ],
+  "离封": [
+   "不知火",
+   "封阳君"
+  ],
+  "狐毗": [
+   "不相狐禅",
+   "毗沙门天"
+  ],
+  "卑因": [
+   "卑弥呼",
+   "因幡辉夜姬"
+  ],
+  "须羊": [
+   "须佐之男",
+   "鬼金羊"
+  ],
+  "凤雪": [
+   "百羽凤凰火",
+   "蝉冰雪女"
+  ],
+  "ban须": [
+   "须佐之男"
+  ],
+  "SSR不见岳": [
+   "不见岳"
+  ],
+  "SP铃彦姬": [
+   "天火命铃彦姬"
+  ],
+  "铃彦姬": [
+   "铃彦姬"
+  ],
+  "SP阎魔": [
+   "大夜摩天阎魔"
+  ],
+  "摩托": [
+   "大夜摩天阎魔"
+  ],
+  "炎魔": [
+   "阎魔"
+  ],
+  "阎魔": [
+   "阎魔"
+  ],
+  "SP雪女": [
+   "蝉冰雪女"
+  ],
+  "SP鬼切": [
+   "天剑韧心鬼切"
+  ],
+  "输出切": [
+   "天剑韧心鬼切"
+  ],
+  "奶切": [
+   "天剑韧心鬼切"
+  ],
+  "SP惠比寿": [
+   "晨晖惠比寿"
+  ],
+  "SP星熊": [
+   "神酿星熊童子"
+  ],
+  "SP铃鹿": [
+   "龙吟铃鹿御前"
+  ],
+  "SSR铃鹿": [
+   "铃鹿御前"
+  ],
+  "铃鹿": [
+   "铃鹿御前"
+  ],
+  "SP清姬": [
+   "缚骨清姬"
+  ],
+  "SP桃花": [
+   "灼华桃花妖"
+  ],
+  "SP吸血姬": [
+   "蚀月吸血姬"
+  ],
+  "SP山风": [
+   "初翎山风"
+  ],
+  "岚": [
+   "初翎山风"
+  ],
+  "SP白": [
+   "梦山白藏主"
+  ],
+  "SP凤": [
+   "百羽凤凰火"
+  ],
+  "凤凰": [
+   "百羽凤凰火"
+  ],
+  "凤": [
+   "百羽凤凰火"
+  ],
+  "平将门": [
+   "平将门"
+  ],
+  "肉平": [
+   "平将门"
+  ],
+  "输出平": [
+   "平将门"
+  ],
+  "石长姬": [
+   "石长姬"
+  ],
+  "雪御前": [
+   "雪御前"
+  ],
+  "面灵气": [
+   "面灵气"
+  ],
+  "鬼金羊": [
+   "鬼金羊"
+  ],
+  "须佐": [
+   "须佐之男"
+  ],
+  "大蛇": [
+   "八岐大蛇"
+  ],
+  "卑弥呼": [
+   "卑弥呼"
+  ],
+  "卑": [
+   "卑弥呼"
+  ],
+  "神无月": [
+   "神无月"
+  ],
+  "龙珏": [
+   "龙珏"
+  ],
+  "龙女": [
+   "龙珏"
+  ],
+  "龙": [
+   "龙珏"
+  ],
+  "不知火": [
+   "不知火"
+  ],
+  "离": [
+   "不知火"
+  ],
+  "不相狐禅": [
+   "不相狐禅"
+  ],
+  "狐": [
+   "不相狐禅"
+  ],
+  "孔雀": [
+   "孔雀明王"
+  ],
+  "咲耶": [
+   "咲耶"
+  ],
+  "封阳君": [
+   "封阳君"
+  ],
+  "思金神": [
+   "思金神"
+  ],
+  "言和": [
+   "言和"
+  ],
+  "鬼童丸": [
+   "鬼童丸"
+  ],
+  "云外镜": [
+   "云外镜"
+  ],
+  "云": [
+   "云外镜"
+  ],
+  "千姬": [
+   "千姬"
+  ],
+  "荒骷髅": [
+   "荒骷髅"
+  ],
+  "毗沙门天": [
+   "毗沙门天"
+  ],
+  "毗": [
+   "毗沙门天"
+  ],
+  "神乐": [
+   "__神乐__"
+  ],
+  "藤原": [
+   "__藤原道长__"
+  ],
+  "酒吞": [
+   "酒吞童子"
+  ],
+  "禅心云外镜": [
+   "禅心云外镜"
+  ],
+  "鬼王酒吞童子": [
+   "鬼王酒吞童子"
+  ]
+ },
+ "yuhun": [
+  "出世螺",
+  "薙魂",
+  "剃魂",
+  "青女房",
+  "共潜",
+  "蚌精",
+  "狂骨",
+  "骰子鬼",
+  "奉海图",
+  "海图",
+  "坐地",
+  "抢速卡",
+  "挖土",
+  "协战",
+  "转体系",
+  "超吞",
+  "超毗"
+ ],
+ "schemes": [
+  {
+   "id": "chantun",
+   "name": "示例方案-禅吞",
+   "builtin": true,
+   "start": "n1",
+   "floating": [
+    "n82",
+    "n87"
+   ],
+   "nodes": {
+    "n7": {
+     "id": "n7",
+     "title": "我方：SP雪女、平将门（肉平）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "蝉冰雪女",
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n6": {
+     "id": "n6",
+     "title": "敌方：石长姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n7"
+     ]
+    },
+    "n9": {
+     "id": "n9",
+     "title": "我方：石长姬、平将门（肉平）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "石长姬",
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n8": {
+     "id": "n8",
+     "title": "敌方：SP吸血姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "蚀月吸血姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n9"
+     ]
+    },
+    "n11": {
+     "id": "n11",
+     "title": "我方：平将门（肉平）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n10": {
+     "id": "n10",
+     "title": "敌方：SP桃花、SP吸血姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "灼华桃花妖",
+      "蚀月吸血姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n11"
+     ]
+    },
+    "n13": {
+     "id": "n13",
+     "title": "我方：石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n12": {
+     "id": "n12",
+     "title": "敌方：平将门（输出平）",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n13"
+     ]
+    },
+    "n15": {
+     "id": "n15",
+     "title": "我方：平将门（输出平）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n14": {
+     "id": "n14",
+     "title": "敌方：平将门（肉平）",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n15"
+     ]
+    },
+    "n5": {
+     "id": "n5",
+     "title": "猜5手卡：",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n6",
+      "n8",
+      "n10",
+      "n12",
+      "n14"
+     ]
+    },
+    "n4": {
+     "id": "n4",
+     "title": "我方：禅吞毗凤",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "毗沙门天",
+      "百羽凤凰火"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n5"
+     ]
+    },
+    "n3": {
+     "id": "n3",
+     "title": "敌方：禅吞毗X",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n4"
+     ]
+    },
+    "n2": {
+     "id": "n2",
+     "title": "禅吞内战",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n3"
+     ]
+    },
+    "n22": {
+     "id": "n22",
+     "title": "我方：炎魔一速：SP雪女",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "阎魔",
+      "蝉冰雪女"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n23": {
+     "id": "n23",
+     "title": "我方：炎魔没一速：SP鬼切（输出切）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "阎魔",
+      "天剑韧心鬼切"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n24": {
+     "id": "n24",
+     "title": "我方：骰子鬼SP惠比寿",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "晨晖惠比寿"
+     ],
+     "yuhun": [
+      "骰子鬼"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n21": {
+     "id": "n21",
+     "title": "敌方4手：面灵气",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "面灵气"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n22",
+      "n23",
+      "n24"
+     ]
+    },
+    "n20": {
+     "id": "n20",
+     "title": "我方4手：雪御前",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "雪御前"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n21"
+     ]
+    },
+    "n19": {
+     "id": "n19",
+     "title": "敌方3手：石长姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n20"
+     ]
+    },
+    "n27": {
+     "id": "n27",
+     "title": "我方5手：SP星熊",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "神酿星熊童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n26": {
+     "id": "n26",
+     "title": "我方4手：石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n27"
+     ]
+    },
+    "n25": {
+     "id": "n25",
+     "title": "敌方3手：平将门",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n26"
+     ]
+    },
+    "n18": {
+     "id": "n18",
+     "title": "我方：禅吞炎魔",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n19",
+      "n25"
+     ]
+    },
+    "n17": {
+     "id": "n17",
+     "title": "敌方：神龙",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "神无月",
+      "龙珏"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n18"
+     ]
+    },
+    "n33": {
+     "id": "n33",
+     "title": "我方5手：鬼金羊",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "鬼金羊"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n32": {
+     "id": "n32",
+     "title": "敌方4手：毗 坐地",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "毗沙门天"
+     ],
+     "yuhun": [
+      "坐地"
+     ],
+     "note": "",
+     "children": [
+      "n33"
+     ]
+    },
+    "n35": {
+     "id": "n35",
+     "title": "我方5手：SP星熊",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "神酿星熊童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n34": {
+     "id": "n34",
+     "title": "敌方4手：抢速卡",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [
+      "抢速卡"
+     ],
+     "note": "",
+     "children": [
+      "n35"
+     ]
+    },
+    "n31": {
+     "id": "n31",
+     "title": "我方4手：炎魔",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n32",
+      "n34"
+     ]
+    },
+    "n30": {
+     "id": "n30",
+     "title": "敌方3手：龙女",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "龙珏"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n31"
+     ]
+    },
+    "n41": {
+     "id": "n41",
+     "title": "我方：SP铃鹿，带藤原，鬼金羊跳SP凤，打毗",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "龙吟铃鹿御前",
+      "__藤原道长__",
+      "鬼金羊",
+      "百羽凤凰火",
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n40": {
+     "id": "n40",
+     "title": "敌方：SP山风",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "初翎山风"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n41"
+     ]
+    },
+    "n43": {
+     "id": "n43",
+     "title": "同上",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n42": {
+     "id": "n42",
+     "title": "敌方：SP雪女",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "蝉冰雪女"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n43"
+     ]
+    },
+    "n45": {
+     "id": "n45",
+     "title": "我方：SP铃鹿，带神乐，鬼金羊跳SP凤，打毗",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "龙吟铃鹿御前",
+      "__神乐__",
+      "鬼金羊",
+      "百羽凤凰火",
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n44": {
+     "id": "n44",
+     "title": "敌方：SP清姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "缚骨清姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n45"
+     ]
+    },
+    "n39": {
+     "id": "n39",
+     "title": "猜5手卡：",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n40",
+      "n42",
+      "n44"
+     ]
+    },
+    "n38": {
+     "id": "n38",
+     "title": "敌方4手：SP凤",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "百羽凤凰火"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n39"
+     ]
+    },
+    "n37": {
+     "id": "n37",
+     "title": "我方4手：鬼金羊",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "鬼金羊"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n38"
+     ]
+    },
+    "n36": {
+     "id": "n36",
+     "title": "地方3手：毗  坐地",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "毗沙门天"
+     ],
+     "yuhun": [
+      "坐地"
+     ],
+     "note": "",
+     "children": [
+      "n37"
+     ]
+    },
+    "n29": {
+     "id": "n29",
+     "title": "我方：禅吞石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n30",
+      "n36"
+     ]
+    },
+    "n28": {
+     "id": "n28",
+     "title": "敌方：神平",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "神无月",
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n29"
+     ]
+    },
+    "n16": {
+     "id": "n16",
+     "title": "神平龙、毗体系",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "神无月",
+      "平将门",
+      "龙珏",
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n17",
+      "n28"
+     ]
+    },
+    "n51": {
+     "id": "n51",
+     "title": "我方5手：鬼金羊（我方的炎魔一速）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "鬼金羊",
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n52": {
+     "id": "n52",
+     "title": "我方5手：再来个炎魔、摩托（SP阎魔） （攻击>4600），电石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "阎魔",
+      "大夜摩天阎魔",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n50": {
+     "id": "n50",
+     "title": "敌方4手：SP铃鹿",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "龙吟铃鹿御前"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n51",
+      "n52"
+     ]
+    },
+    "n54": {
+     "id": "n54",
+     "title": "同上",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n53": {
+     "id": "n53",
+     "title": "敌方4手：炎魔",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n54"
+     ]
+    },
+    "n49": {
+     "id": "n49",
+     "title": "我方4手：狂骨须佐",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "须佐之男"
+     ],
+     "yuhun": [
+      "狂骨"
+     ],
+     "note": "",
+     "children": [
+      "n50",
+      "n53"
+     ]
+    },
+    "n48": {
+     "id": "n48",
+     "title": "敌方3手：神卑石都有",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "神无月",
+      "卑弥呼",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n49"
+     ]
+    },
+    "n47": {
+     "id": "n47",
+     "title": "我方：禅吞炎魔",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n48"
+     ]
+    },
+    "n56": {
+     "id": "n56",
+     "title": "我方：禅吞摩托+须羊（同上）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "大夜摩天阎魔",
+      "须佐之男",
+      "鬼金羊"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n57": {
+     "id": "n57",
+     "title": "我方：禅吞摩托+凤雪（超吞）（摩托没速度）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "大夜摩天阎魔",
+      "百羽凤凰火",
+      "蝉冰雪女"
+     ],
+     "yuhun": [
+      "超吞(快过鬼吞)"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n55": {
+     "id": "n55",
+     "title": "对面ban炎魔",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n56",
+      "n57"
+     ]
+    },
+    "n46": {
+     "id": "n46",
+     "title": "神卑、神石",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "神无月",
+      "卑弥呼",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n47",
+      "n55"
+     ]
+    },
+    "n60": {
+     "id": "n60",
+     "title": "同上，须佐+双炎魔",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "须佐之男",
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n61": {
+     "id": "n61",
+     "title": "或：禅吞炎魔凤凰SP雪女",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "阎魔",
+      "百羽凤凰火",
+      "蝉冰雪女"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n59": {
+     "id": "n59",
+     "title": "敌方正常挖土",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [
+      "挖土"
+     ],
+     "note": "",
+     "children": [
+      "n60",
+      "n61"
+     ]
+    },
+    "n63": {
+     "id": "n63",
+     "title": "我方禅吞炎魔+SP山风（青女房）+SP雪女（共潜）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "阎魔",
+      "初翎山风",
+      "蝉冰雪女"
+     ],
+     "yuhun": [
+      "青女房",
+      "共潜"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n62": {
+     "id": "n62",
+     "title": "敌方可能出大蛇",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "八岐大蛇"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n63"
+     ]
+    },
+    "n58": {
+     "id": "n58",
+     "title": "卑因X挖土",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "卑弥呼",
+      "因幡辉夜姬"
+     ],
+     "yuhun": [
+      "挖土"
+     ],
+     "note": "",
+     "children": [
+      "n59",
+      "n62"
+     ]
+    },
+    "n66": {
+     "id": "n66",
+     "title": "禅吞+封阳君（超毗）+SP凤（剃魂）+摩托，带神乐，封单点控铃鹿",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "封阳君",
+      "百羽凤凰火",
+      "大夜摩天阎魔",
+      "__神乐__",
+      "铃鹿御前"
+     ],
+     "yuhun": [
+      "超毗(快过毗沙门天)",
+      "薙魂"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n65": {
+     "id": "n65",
+     "title": "敌方：狐毗SSR铃鹿+须佐",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "不相狐禅",
+      "毗沙门天",
+      "铃鹿御前",
+      "须佐之男"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n66"
+     ]
+    },
+    "n68": {
+     "id": "n68",
+     "title": "禅吞+封阳君+石长姬+咲耶（跑过狐）",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "封阳君",
+      "石长姬",
+      "咲耶",
+      "不相狐禅"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n67": {
+     "id": "n67",
+     "title": "敌方：狐毗SP铃鹿+鬼吞",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "不相狐禅",
+      "毗沙门天",
+      "龙吟铃鹿御前",
+      "鬼王酒吞童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n68"
+     ]
+    },
+    "n64": {
+     "id": "n64",
+     "title": "狐毗体系",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "不相狐禅",
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n65",
+      "n67"
+     ]
+    },
+    "n72": {
+     "id": "n72",
+     "title": "我方：炎魔+咲耶",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "阎魔",
+      "咲耶"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n71": {
+     "id": "n71",
+     "title": "敌方：离封石长姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "不知火",
+      "封阳君",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n72"
+     ]
+    },
+    "n74": {
+     "id": "n74",
+     "title": "我方：肉平将门（出世螺或纯肉1500防御1w+生命）+孔雀",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门",
+      "孔雀明王"
+     ],
+     "yuhun": [
+      "出世螺"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n73": {
+     "id": "n73",
+     "title": "敌方：离封酒吞",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "不知火",
+      "封阳君",
+      "酒吞童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n74"
+     ]
+    },
+    "n70": {
+     "id": "n70",
+     "title": "我方：离封石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "不知火",
+      "封阳君",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n71",
+      "n73"
+     ]
+    },
+    "n69": {
+     "id": "n69",
+     "title": "离封",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "不知火",
+      "封阳君"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n70"
+     ]
+    },
+    "n77": {
+     "id": "n77",
+     "title": "我方：禅吞思金神+言和+石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "思金神",
+      "言和",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n76": {
+     "id": "n76",
+     "title": "敌方：云熊千姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "云外镜",
+      "神酿星熊童子",
+      "千姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n77"
+     ]
+    },
+    "n79": {
+     "id": "n79",
+     "title": "我方：禅吞思金神+言和+鬼童丸（控制御魂但做输出）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "思金神",
+      "言和",
+      "鬼童丸"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n78": {
+     "id": "n78",
+     "title": "敌方：云熊SP惠比寿",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "云外镜",
+      "神酿星熊童子",
+      "晨晖惠比寿"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n79"
+     ]
+    },
+    "n75": {
+     "id": "n75",
+     "title": "云+SP星熊",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "云外镜",
+      "神酿星熊童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n76",
+      "n78"
+     ]
+    },
+    "n81": {
+     "id": "n81",
+     "title": "我方：禅吞+蚌精SP白+炎魔/摩托/SP雪女/剃魂奶切/孔雀海图",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "梦山白藏主",
+      "阎魔",
+      "大夜摩天阎魔",
+      "蝉冰雪女",
+      "天剑韧心鬼切",
+      "孔雀明王"
+     ],
+     "yuhun": [
+      "蚌精",
+      "薙魂",
+      "奉海图"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n80": {
+     "id": "n80",
+     "title": "协战",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [
+      "协战"
+     ],
+     "note": "",
+     "children": [
+      "n81"
+     ]
+    },
+    "n1": {
+     "id": "n1",
+     "title": "禅吞开",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n2",
+      "n16",
+      "n46",
+      "n58",
+      "n64",
+      "n69",
+      "n75",
+      "n80"
+     ]
+    },
+    "n84": {
+     "id": "n84",
+     "title": "SP凤开",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "百羽凤凰火"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n83": {
+     "id": "n83",
+     "title": "ban须",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "须佐之男"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n84"
+     ]
+    },
+    "n86": {
+     "id": "n86",
+     "title": "禅吞开",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n85": {
+     "id": "n85",
+     "title": "ban其他",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n86"
+     ]
+    },
+    "n82": {
+     "id": "n82",
+     "title": "看对面ban位",
+     "camp": "free",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n83",
+      "n85"
+     ]
+    },
+    "n89": {
+     "id": "n89",
+     "title": "我方：和上面具体体系一样",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n88": {
+     "id": "n88",
+     "title": "敌方：转体系",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [
+      "转体系"
+     ],
+     "note": "",
+     "children": [
+      "n89"
+     ]
+    },
+    "n93": {
+     "id": "n93",
+     "title": "我方4手：平将门（输出）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n92": {
+     "id": "n92",
+     "title": "敌方：荒骷髅+SP吸血姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "荒骷髅",
+      "蚀月吸血姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n93"
+     ]
+    },
+    "n95": {
+     "id": "n95",
+     "title": "我方：平将门（输出）+SSR不见岳",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门",
+      "不见岳"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n94": {
+     "id": "n94",
+     "title": "敌方3手：毗",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n95"
+     ]
+    },
+    "n97": {
+     "id": "n97",
+     "title": "我方：平将门（输出）+奉海图孔雀",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门",
+      "孔雀明王"
+     ],
+     "yuhun": [
+      "奉海图"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n96": {
+     "id": "n96",
+     "title": "敌方：思金神、SP铃彦姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "思金神",
+      "天火命铃彦姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n97"
+     ]
+    },
+    "n91": {
+     "id": "n91",
+     "title": "我方：SP凤+离封",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "百羽凤凰火",
+      "不知火",
+      "封阳君"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n92",
+      "n94",
+      "n96"
+     ]
+    },
+    "n90": {
+     "id": "n90",
+     "title": "敌方：SP凤+石长姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "百羽凤凰火",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n91"
+     ]
+    },
+    "n87": {
+     "id": "n87",
+     "title": "ban须",
+     "camp": "free",
+     "hand": null,
+     "shishen": [
+      "须佐之男"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n88",
+      "n90"
+     ]
+    }
+   },
+   "sheet": {
+    "headers": [
+     "式神",
+     "指标",
+     "御魂套装",
+     "246号位",
+     "其他要求"
+    ],
+    "rows": [
+     [
+      "阎魔",
+      "速度",
+      "散件",
+      "速XX",
+      "攻击>4600"
+     ],
+     [
+      "鬼吞",
+      "生命",
+      "火灵+防御两件套",
+      "速生生",
+      "速度>210"
+     ]
+    ]
+   },
+   "rev": "010cca1293"
+  }
+ ],
+ "activeScheme": "chantun"
+}

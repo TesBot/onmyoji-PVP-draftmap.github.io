@@ -1,0 +1,4707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>翻牌上卡导引图</title>
+<style>
+:root{
+  --page:#FFFFFF; --panel:#F4F6F8; --text:#1F2328; --border:#D7DCE2; --line:#3679E7;
+  --n-bg:#E7EBED; --n-fg:#1F2328; --n-bd:#C7CDD2;
+  --e-bg:#F6DCD8; --e-fg:#7A1F16; --e-bd:#B03A2E; --e-line:#B03A2E;
+  --m-bg:#DCE9F7; --m-fg:#1B3F6B; --m-bd:#2C5F9E; --m-line:#2C5F9E;
+  --r-bg:#367AE7; --r-fg:#FFFFFF; --r-bd:#3679E7; --r-line:#3679E7;
+  --f-bd:#3679E7; --f-line:#3679E7;
+  --fs-node:15px; --fs-branch:17px; --fs-root:22px; --fs-chip:12px; --fs-badge:11px;
+  --lh:1.45;
+  --av-size:40px; --av-gap:6px; --av-radius:7px; --av-mb:8px;
+  --nw-min:190px; --nw-max:404px; --n-padx:12px; --n-padt:9px; --n-padb:10px; --n-radius:7px;
+  --chip-bg:rgba(127,127,127,.15); --badge-bg:#3679E7; --badge-fg:#FFFFFF;
+  --zone-bg:rgba(127,127,127,.045); --zone-border:rgba(127,127,127,.10); --zone-radius:12px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif;
+  background:var(--page);color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased}
+#app{display:flex;flex-direction:column;height:100%}
+
+header{flex:0 0 auto;padding:9px 16px;background:var(--panel);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:14px}
+h1{font-size:15px;margin:0;font-weight:700}
+.tools{margin-left:auto;display:flex;gap:8px;align-items:center}
+button{font:inherit;font-size:12px;padding:5px 11px;border:1px solid var(--border);border-radius:6px;
+  background:var(--page);color:var(--text);cursor:pointer}
+button:hover{border-color:var(--line)}
+button.on{background:var(--line);color:#fff;border-color:var(--line)}
+/* 顶栏按钮：胶囊形，弱化底噪，hover / 激活态分明 */
+.tools button{
+  font-size:12.5px;padding:6px 15px;border-radius:999px;
+  background:transparent;color:var(--text);border:1px solid var(--border);
+  opacity:.72;transition:opacity .15s, background .15s, border-color .15s, color .15s;
+  white-space:nowrap;line-height:1.5;
+}
+.tools button:hover{opacity:1;border-color:var(--line);background:rgba(127,127,127,.10)}
+.tools button:active{transform:translateY(1px)}
+.tools button.on{opacity:1;background:var(--line);color:#fff;border-color:var(--line)}
+.tools button.on:hover{background:var(--line);opacity:.9}
+
+/* 方案标签栏 */
+#schemeBar{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:6px 16px;
+  background:var(--panel);border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{font-size:12px;padding:4px 10px;border:1px solid var(--border);border-radius:14px;
+  background:var(--page);color:var(--text);cursor:pointer;white-space:nowrap;
+  display:inline-flex;align-items:center;gap:6px;user-select:none}
+.tab:hover{border-color:var(--line)}
+.tab.on{background:var(--line);color:#fff;border-color:var(--line)}
+.tab.dragging{opacity:.4}
+.tab.drop-l{box-shadow:-3px 0 0 0 var(--line)}
+.tab.drop-r{box-shadow:3px 0 0 0 var(--line)}
+.tab .x{opacity:.55;font-size:14px;line-height:1;padding:0 1px}
+.tab .x:hover{opacity:1}
+/* 方案来源徽标：示例随页面发布，自建只存本机浏览器 */
+.pin{font-size:10px;line-height:15px;padding:0 6px;border-radius:9px;white-space:nowrap;
+  background:rgba(44,95,158,.16);color:#2C5F9E;border:1px solid rgba(44,95,158,.35)}
+[data-theme="dark"] .pin{background:rgba(120,170,235,.18);color:#9CC6F5;border-color:rgba(120,170,235,.4)}
+.pin.loc{background:rgba(186,117,23,.16);color:#96601A;border-color:rgba(186,117,23,.4)}
+[data-theme="dark"] .pin.loc{background:rgba(230,170,80,.18);color:#EDC07A;border-color:rgba(230,170,80,.4)}
+.tab.on .pin{background:rgba(255,255,255,.22);color:#fff;border-color:rgba(255,255,255,.45)}
+/* 方案栏右侧的操作按钮 */
+.barR{margin-left:auto;display:flex;align-items:center;gap:6px;flex:0 0 auto;padding-left:10px}
+.bbtn{font-size:12px;line-height:1;padding:5px 10px;cursor:pointer;border-radius:13px;
+  border:1px solid var(--border);background:var(--page);color:var(--text)}
+.bbtn:hover{border-color:var(--line);color:var(--line)}
+.bbtn.open{border-color:var(--line);color:var(--line);background:rgba(127,127,127,.12)}
+
+/* 切换方案时闪一下的提示（不常驻，几秒后自动消失） */
+#schemeNote{position:absolute;left:50%;top:12px;z-index:40;transform:translate(-50%,-8px);
+  display:none;align-items:center;gap:8px;max-width:min(680px,86vw);
+  padding:7px 14px;border-radius:8px;font-size:12px;line-height:1.5;
+  background:rgba(186,117,23,.14);color:var(--text);
+  border:1px solid rgba(186,117,23,.45);box-shadow:0 4px 14px rgba(0,0,0,.12);
+  opacity:0;transition:opacity .18s ease, transform .18s ease;pointer-events:none}
+#schemeNote.on{display:flex;opacity:1;transform:translate(-50%,0)}
+#schemeNote b{color:#96601A}
+[data-theme="dark"] #schemeNote b{color:#EDC07A}
+
+#stage{flex:1 1 auto;position:relative;overflow:hidden;background:var(--page);cursor:grab}
+#stage.drag{cursor:grabbing}
+
+/* --- 式神配置表（每方案一张：默认隐藏，浮在导图下沿的抽屉，不挤压画布）--- */
+#sheetBar{position:absolute;left:16px;right:16px;bottom:16px;z-index:26;display:none;
+  flex-direction:column;max-height:48%;background:var(--panel);
+  border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  box-shadow:0 14px 38px rgba(0,0,0,.20), 0 2px 8px rgba(0,0,0,.10)}
+#sheetBar.open{display:flex}
+#side.open ~ #sheetBar{right:416px}      /* 侧栏打开时让位，别被编辑面板压住 */
+#sheetHead{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:8px 14px;font-size:12.5px}
+#sheetHead b{font-weight:700}
+#sheetHead .cnt{font-size:11px;color:var(--text);opacity:.55;
+  border:1px solid var(--border);border-radius:999px;padding:1px 8px}
+#sheetHead #sheetHint{flex:1 1 auto;opacity:.5;font-size:11.5px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sheetHead button{font-size:12px;padding:4px 12px;border-radius:999px;border:1px solid var(--border);
+  background:transparent;color:var(--text);cursor:pointer;white-space:nowrap}
+#sheetHead button:hover{border-color:var(--line);background:rgba(127,127,127,.10)}
+#sheetBody{flex:1 1 auto;overflow:auto;border-top:1px solid var(--border)}
+table.sheet{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:100%}
+table.sheet th{position:sticky;top:0;z-index:1;background:var(--page);text-align:left;
+  padding:6px 10px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);
+  font-weight:600;white-space:nowrap}
+table.sheet th:last-child{border-right:none}
+table.sheet td{padding:5px 10px;border-bottom:1px solid var(--border);
+  border-right:1px solid var(--border);vertical-align:middle;white-space:nowrap}
+table.sheet tr:hover td{background:rgba(127,127,127,.06)}
+table.sheet .no{width:38px;text-align:center;opacity:.5;font-variant-numeric:tabular-nums}
+table.sheet .av{width:26px;height:26px;border-radius:5px;vertical-align:middle;margin-right:6px}
+table.sheet .avm{display:inline-block;width:26px;height:26px;border-radius:5px;margin-right:6px;
+  vertical-align:middle;text-align:center;line-height:26px;font-size:11px;opacity:.6;
+  border:1px dashed var(--border)}
+table.sheet td.edit{cursor:text}
+table.sheet td.edit input{width:100%;min-width:70px;font:inherit;font-size:12.5px;
+  padding:2px 4px;border:1px solid var(--line);border-radius:4px;background:var(--page);color:var(--text)}
+table.sheet .del{width:32px;text-align:center;cursor:pointer;opacity:.4;font-size:14px;border-right:none}
+table.sheet .del:hover{opacity:1}
+#sheetEmpty{padding:16px;font-size:12.5px;line-height:1.9;opacity:.72}
+#sheetEmpty kbd{font:inherit;font-size:11.5px;border:1px solid var(--border);border-radius:4px;
+  padding:1px 5px;background:var(--page)}
+#world{position:absolute;top:0;left:0;transform-origin:0 0}
+#wires{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;z-index:1}
+#wires path{fill:none;stroke-linecap:round}
+/* 汇合虚线走的路程长、常常要跨过别的分支，画在节点之上（z-index 3）才不会被框盖住；
+   底下垫一条同色半透明的粗线当底衬，压到框上也还看得清是哪条 */
+#wiresTop{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;z-index:3}
+#wiresTop path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.zone{position:absolute;z-index:0;pointer-events:none;
+  background:var(--zone-bg);border:1px solid var(--zone-border);border-radius:var(--zone-radius)}
+
+.node{position:absolute;z-index:2;width:max-content;min-width:var(--nw-min);max-width:var(--nw-max);
+  padding:var(--n-padt) var(--n-padx) var(--n-padb);border-radius:var(--n-radius);
+  border:1px solid var(--n-bd);background:var(--n-bg);color:var(--n-fg);
+  font-size:var(--fs-node);line-height:var(--lh);box-shadow:0 1px 3px rgba(16,24,40,.10)}
+.node:hover{box-shadow:0 2px 10px rgba(16,24,40,.18);z-index:5}
+.node[data-camp="enemy"]{background:var(--e-bg);color:var(--e-fg);border-color:var(--e-bd)}
+.node[data-camp="mine"]{background:var(--m-bg);color:var(--m-fg);border-color:var(--m-bd)}
+.node[data-camp="root"]{background:var(--r-bg);color:var(--r-fg);border-color:var(--r-bd);
+  font-size:var(--fs-root);font-weight:700;padding:14px 26px;min-width:0;max-width:none}
+.node[data-camp="free"]{background:var(--page);border-style:dashed;border-color:var(--f-bd);
+  font-size:var(--fs-branch);font-weight:700;min-width:0;max-width:none}
+.node.clickable{cursor:pointer}
+.node.sel{outline:2px solid var(--line);outline-offset:2px}
+.node.ref{border-style:dashed;opacity:.92}
+
+.avs{display:flex;flex-wrap:wrap;gap:var(--av-gap);margin:0 0 var(--av-mb)}
+.av{width:var(--av-size);height:var(--av-size);border-radius:var(--av-radius);object-fit:cover;
+  display:block;flex:0 0 auto;background:var(--page);border:1px solid rgba(0,0,0,.12)}
+.av-miss{width:var(--av-size);height:var(--av-size);border-radius:var(--av-radius);flex:0 0 auto;
+  box-sizing:border-box;border:1px dashed var(--e-bd);background:rgba(176,58,46,.10);color:var(--e-fg);
+  font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:help}
+.txt{word-break:break-word;text-align:left}
+.node[data-camp="root"] .txt,.node[data-camp="free"] .txt{white-space:nowrap}
+.yh{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.chip{font-size:var(--fs-chip);line-height:19px;padding:0 8px;border-radius:10px;
+  background:var(--chip-bg);white-space:nowrap}
+.badge{position:absolute;right:-9px;top:-9px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;
+  background:var(--badge-bg);color:var(--badge-fg);font-size:var(--fs-badge);line-height:20px;
+  text-align:center;border:2px solid var(--page)}
+/* 汇合徽标：提示这个框有几条路径汇进来（注意类名不能含 badge，布局里的 .badge 是折叠计数用的） */
+.mgbadge{position:absolute;left:-9px;top:-9px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;
+  background:var(--panel);color:var(--line);border:1px dashed var(--line);
+  font-size:var(--fs-badge);line-height:18px;text-align:center;cursor:help}
+.refmark{font-size:var(--fs-chip);opacity:.75;margin-top:4px}
+
+/* 侧栏：配置面板 / 节点编辑 */
+#side{position:absolute;top:0;right:0;bottom:0;width:400px;z-index:30;background:var(--panel);
+  border-left:1px solid var(--border);display:none;flex-direction:column}
+#side.open{display:flex}
+#side h2{margin:0;padding:12px 14px;font-size:13px;font-weight:700;border-bottom:1px solid var(--border)}
+#side h2 .nid{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;font-weight:600;
+  padding:1px 7px;margin-left:2px;border:1px solid var(--border);border-radius:6px;
+  background:var(--page);cursor:pointer;-webkit-user-select:text;user-select:text}
+#side h2 .nid:hover{border-color:var(--line);color:var(--line)}
+#side h2 .nid.ok{border-color:#3AA76D;color:#3AA76D}
+#side h2 .nid.ok::after{content:' 已复制';font-size:10.5px;font-weight:400;opacity:.85}
+#side h2 .sub{font-weight:400;font-size:12px;opacity:.55;margin-left:6px}
+#sideBody{flex:1 1 auto;overflow:auto;padding:12px 14px}
+#sideFoot{flex:0 0 auto;padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap}
+.fld{margin-bottom:12px}
+.fld label{display:block;font-size:12px;margin-bottom:4px;opacity:.8}
+.fld input,.fld select,.fld textarea{width:100%;font:inherit;font-size:13px;padding:6px 8px;
+  border:1px solid var(--border);border-radius:6px;background:var(--page);color:var(--text)}
+.fld textarea{min-height:150px;font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:1.5}
+.warn{background:rgba(186,117,23,.12);border:1px solid rgba(186,117,23,.4);border-radius:6px;
+  padding:8px 10px;font-size:12px;line-height:1.6;margin-bottom:10px}
+.warn b{display:block;margin-bottom:4px}
+.warn ul{margin:0;padding-left:16px}
+.hint{font-size:12px;opacity:.7;line-height:1.6}
+/* 引用来源列表（共享节点：一条路径一行，✕ 只解除那一条引用） */
+.refrow{display:flex;align-items:center;gap:8px;padding:5px 8px;margin-bottom:6px;
+  border:1px solid var(--border);border-radius:6px;font-size:12.5px;background:var(--page)}
+.refrow .rid{font-family:ui-monospace,Consolas,monospace;flex:0 0 auto;opacity:.7}
+.refrow .rtl{flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.refrow .rx{flex:0 0 auto;padding:0 3px;cursor:pointer;opacity:.45}
+.refrow .rx:hover{opacity:1}
+
+/* 节点右键菜单 */
+#ctxMenu{position:fixed;z-index:45;display:none;min-width:156px;padding:5px;
+  background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  box-shadow:0 8px 24px rgba(15,20,25,.2)}
+#ctxMenu .mi{padding:7px 10px;border-radius:6px;font-size:13px;cursor:pointer;white-space:nowrap}
+#ctxMenu .mi:hover{background:var(--zone-bg)}
+#ctxMenu .mi.off{opacity:.42;cursor:not-allowed}
+#ctxMenu .mi.off:hover{background:transparent}
+#ctxMenu .sp{height:1px;margin:5px 6px;background:var(--border)}
+
+/* 导出方式选择（JSON / 单 HTML / PNG） */
+#expBox{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+  background:rgba(15,20,25,.45);backdrop-filter:blur(2px)}
+#expBox.open{display:flex}
+#expBox .ebx{width:min(560px,92vw);max-height:88vh;overflow:auto;background:var(--panel);
+  border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 40px rgba(15,20,25,.28);padding:18px 18px 14px}
+#expBox h3{margin:0 0 4px;font-size:15px}
+#expOpts{display:flex;flex-direction:column;gap:8px;margin:14px 0 12px}
+#expOpts .opt{display:flex;gap:10px;align-items:flex-start;text-align:left;width:100%;cursor:pointer;
+  padding:11px 12px;border:1px solid var(--border);border-radius:9px;background:var(--page);color:var(--text);
+  font:inherit;transition:border-color .12s, box-shadow .12s}
+#expOpts .opt:hover{border-color:var(--line);box-shadow:0 2px 8px rgba(15,20,25,.12)}
+#expOpts .opt .ic{flex:0 0 auto;width:30px;font-size:17px;line-height:1.5;text-align:center}
+#expOpts .opt .bd{flex:1 1 auto;min-width:0}
+#expOpts .opt .tt{font-size:13.5px;font-weight:600;margin-bottom:2px}
+#expOpts .opt .dd{font-size:12px;opacity:.72;line-height:1.55}
+#expOpts .opt[disabled]{opacity:.5;cursor:default}
+#expFoot{display:flex;align-items:center;gap:10px;justify-content:space-between}
+#expTip{font-size:12px;opacity:.75;line-height:1.5}
+
+/* 只读导出版（单 HTML）：隐藏编辑面板与方案管理按钮，只留查看 */
+.ro #side{display:none !important}
+.ro #schemeBar .barR{display:none}
+.ro #sheetAdd{display:none}
+.ro #sheetHint{display:none}
+.ro .node{cursor:pointer}
+.ro .node.sel{outline:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <header><h1 id="ttl">翻牌上卡导引图</h1><div class="tools" id="tools"></div></header>
+  <div id="schemeBar"></div>
+  <div id="stage">
+    <div id="schemeNote"></div>
+    <div id="world"><svg id="wires"></svg><svg id="wiresTop"></svg></div>
+    <div id="side">
+      <h2 id="sideTitle">配置</h2>
+      <div id="sideBody"></div>
+      <div id="sideFoot"></div>
+    </div>
+    <!-- 式神配置表：默认完全隐藏，点方案栏「式神配置」才浮出来，不占画布空间 -->
+    <div id="sheetBar">
+      <div id="sheetHead">
+        <b>式神配置</b><span id="sheetCnt" class="cnt"></span>
+        <span id="sheetHint">单元格双击编辑 · 回车保存 · 随方案一起导出 / 导入</span>
+        <button id="sheetAdd">＋ 添加一行</button>
+        <button id="sheetToggle">收起 ▾</button>
+      </div>
+      <div id="sheetBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 导出方式选择：JSON（可导入）/ 单 HTML（只读）/ PNG（导图 + 式神配置） -->
+<div id="expBox">
+  <div class="ebx">
+    <h3>导出方案：<b id="expName"></b></h3>
+    <div id="expOpts"></div>
+    <div id="expFoot"><span id="expTip"></span><button id="expClose">取消</button></div>
+  </div>
+</div>
+
+<!-- 节点右键菜单：挂在 body 上、用 position:fixed 定位 —— 放在 #stage 里会被它的
+     overflow:hidden 裁掉，画布缩放/平移也会把坐标系带歪 -->
+<div id="ctxMenu"></div>
+
+<script id="cfg-embed" type="application/json">{
+ "meta": {
+  "title": "翻牌上卡导引图",
+  "version": 1
+ },
+ "ui": {
+  "showHeader": true,
+  "buttons": [
+   {
+    "id": "fit",
+    "label": "适应窗口",
+    "action": "view",
+    "show": true
+   },
+   {
+    "id": "fold",
+    "label": "只看体系",
+    "action": "foldTop",
+    "show": true
+   },
+   {
+    "id": "theme",
+    "label": "暗色",
+    "action": "toggleTheme",
+    "show": true
+   }
+  ],
+  "interaction": {
+   "clickFold": true,
+   "dblclickFocus": true,
+   "wheelZoom": true,
+   "dragPan": true,
+   "keyboardPan": true,
+   "nodeDrag": true
+  },
+  "clickFoldDelay": 160
+ },
+ "layout": {
+  "rev": 1,
+  "hGap": 54,
+  "vGap": 13,
+  "branchGap": 26,
+  "groupGap": 120,
+  "padX": 30,
+  "padTop": 40,
+  "canvasPad": 60,
+  "defaultExpanded": true,
+  "zoneEnabled": true,
+  "sharedNodeMode": "merge",
+  "sharedTitleMax": 10,
+  "columnMode": "depth",
+  "readableScale": 0.85,
+  "minScale": 0.15,
+  "maxScale": 3,
+  "fitThreshold": 0.5,
+  "lineWidth": 2
+ },
+ "style": {
+  "font": {
+   "node": 15,
+   "branch": 17,
+   "root": 22,
+   "chip": 12,
+   "badge": 11
+  },
+  "lineHeight": 1.45,
+  "node": {
+   "minWidth": 190,
+   "maxWidth": 404,
+   "padX": 12,
+   "padTop": 9,
+   "padBottom": 10,
+   "radius": 7
+  },
+  "avatar": {
+   "size": 40,
+   "gap": 6,
+   "radius": 7,
+   "marginBottom": 8
+  },
+  "camp": {
+   "enemy": {
+    "bg": "#F6DCD8",
+    "fg": "#7A1F16",
+    "border": "#B03A2E",
+    "line": "#B03A2E"
+   },
+   "mine": {
+    "bg": "#DCE9F7",
+    "fg": "#1B3F6B",
+    "border": "#2C5F9E",
+    "line": "#2C5F9E"
+   },
+   "neutral": {
+    "bg": "#E7EBED",
+    "fg": "#1F2328",
+    "border": "#C7CDD2",
+    "line": "#3679E7"
+   },
+   "root": {
+    "bg": "#367AE7",
+    "fg": "#FFFFFF",
+    "border": "#3679E7",
+    "line": "#3679E7"
+   },
+   "free": {
+    "bg": "",
+    "fg": "",
+    "border": "#3679E7",
+    "line": "#3679E7"
+   }
+  },
+  "theme": {
+   "light": {
+    "page": "#FFFFFF",
+    "panel": "#F4F6F8",
+    "text": "#1F2328",
+    "border": "#D7DCE2",
+    "line": "#3679E7",
+    "neutralBg": "#E7EBED",
+    "neutralFg": "#1F2328",
+    "neutralBorder": "#C7CDD2"
+   },
+   "dark": {
+    "page": "#0F1419",
+    "panel": "#161B22",
+    "text": "#E6EDF3",
+    "border": "#2C3540",
+    "line": "#5C9BF5",
+    "neutralBg": "#2A323B",
+    "neutralFg": "#E6EDF3",
+    "neutralBorder": "#3A444F"
+   }
+  },
+  "startTheme": "light",
+  "chipBg": "rgba(127,127,127,.15)",
+  "badgeBg": "#3679E7",
+  "badgeFg": "#FFFFFF",
+  "missing": {
+   "mark": "?",
+   "borderStyle": "dashed",
+   "bg": "rgba(176,58,46,.10)"
+  },
+  "zoneBg": "rgba(127,127,127,.045)",
+  "zoneBorder": "rgba(127,127,127,.10)",
+  "zoneRadius": 12
+ },
+ "assets": {
+  "avatarDir": "assets/shishen/avatars",
+  "avatarIndex": {
+   "云间不见岳": "assets/shishen/avatars/SP/云间不见岳.png",
+   "修罗鬼童丸": "assets/shishen/avatars/SP/修罗鬼童丸.png",
+   "初翎山风": "assets/shishen/avatars/SP/初翎山风.png",
+   "因幡辉夜姬": "assets/shishen/avatars/SP/因幡辉夜姬.png",
+   "夜溟彼岸花": "assets/shishen/avatars/SP/夜溟彼岸花.png",
+   "大夜摩天阎魔": "assets/shishen/avatars/SP/大夜摩天阎魔.png",
+   "天剑韧心鬼切": "assets/shishen/avatars/SP/天剑韧心鬼切.png",
+   "天火命铃彦姬": "assets/shishen/avatars/SP/天火命铃彦姬.png",
+   "妙主九命猫": "assets/shishen/avatars/SP/妙主九命猫.png",
+   "寻森小鹿男": "assets/shishen/avatars/SP/寻森小鹿男.png",
+   "少羽大天狗": "assets/shishen/avatars/SP/少羽大天狗.png",
+   "待宵姑获鸟": "assets/shishen/avatars/SP/待宵姑获鸟.png",
+   "御怨般若": "assets/shishen/avatars/SP/御怨般若.png",
+   "心友犬神": "assets/shishen/avatars/SP/心友犬神.png",
+   "心狩鬼女红叶": "assets/shishen/avatars/SP/心狩鬼女红叶.png",
+   "时曜泷夜叉姬": "assets/shishen/avatars/SP/时曜泷夜叉姬.png",
+   "晨晖惠比寿": "assets/shishen/avatars/SP/晨晖惠比寿.png",
+   "晴思日和坊": "assets/shishen/avatars/SP/晴思日和坊.png",
+   "本真三尾狐": "assets/shishen/avatars/SP/本真三尾狐.png",
+   "梦寻山兔": "assets/shishen/avatars/SP/梦寻山兔.png",
+   "梦山白藏主": "assets/shishen/avatars/SP/梦山白藏主.png",
+   "梦引蝴蝶精": "assets/shishen/avatars/SP/梦引蝴蝶精.png",
+   "流光追月神": "assets/shishen/avatars/SP/流光追月神.png",
+   "浮世青行灯": "assets/shishen/avatars/SP/浮世青行灯.png",
+   "渺念萤草": "assets/shishen/avatars/SP/渺念萤草.png",
+   "灼华桃花妖": "assets/shishen/avatars/SP/灼华桃花妖.png",
+   "炼狱茨木童子": "assets/shishen/avatars/SP/炼狱茨木童子.png",
+   "烬天玉藻前": "assets/shishen/avatars/SP/烬天玉藻前.png",
+   "瑶音紧那罗": "assets/shishen/avatars/SP/瑶音紧那罗.png",
+   "百羽凤凰火": "assets/shishen/avatars/SP/百羽凤凰火.png",
+   "神启荒": "assets/shishen/avatars/SP/神启荒.png",
+   "神堕八岐大蛇": "assets/shishen/avatars/SP/神堕八岐大蛇.png",
+   "神酿星熊童子": "assets/shishen/avatars/SP/神酿星熊童子.png",
+   "禅心云外镜": "assets/shishen/avatars/SP/禅心云外镜.png",
+   "福悦座敷童子": "assets/shishen/avatars/SP/福悦座敷童子.png",
+   "稻荷神御馔津": "assets/shishen/avatars/SP/稻荷神御馔津.png",
+   "空相面灵气": "assets/shishen/avatars/SP/空相面灵气.png",
+   "纺愿缘结神": "assets/shishen/avatars/SP/纺愿缘结神.png",
+   "绘世花鸟卷": "assets/shishen/avatars/SP/绘世花鸟卷.png",
+   "缚骨清姬": "assets/shishen/avatars/SP/缚骨清姬.png",
+   "聆海金鱼姬": "assets/shishen/avatars/SP/聆海金鱼姬.png",
+   "苍风一目连": "assets/shishen/avatars/SP/苍风一目连.png",
+   "蚀月吸血姬": "assets/shishen/avatars/SP/蚀月吸血姬.png",
+   "蝉冰雪女": "assets/shishen/avatars/SP/蝉冰雪女.png",
+   "赤影妖刀姬": "assets/shishen/avatars/SP/赤影妖刀姬.png",
+   "遥念烟烟罗": "assets/shishen/avatars/SP/遥念烟烟罗.png",
+   "骁浪荒川之主": "assets/shishen/avatars/SP/骁浪荒川之主.png",
+   "鬼王酒吞童子": "assets/shishen/avatars/SP/鬼王酒吞童子.png",
+   "鲸汐千姬": "assets/shishen/avatars/SP/鲸汐千姬.png",
+   "麓铭大岳丸": "assets/shishen/avatars/SP/麓铭大岳丸.png",
+   "龙吟铃鹿御前": "assets/shishen/avatars/SP/龙吟铃鹿御前.png",
+   "一目连": "assets/shishen/avatars/SSR/一目连.png",
+   "不相狐禅": "assets/shishen/avatars/SSR/不相狐禅.png",
+   "不知火": "assets/shishen/avatars/SSR/不知火.png",
+   "不见岳": "assets/shishen/avatars/SSR/不见岳.png",
+   "两面佛": "assets/shishen/avatars/SSR/两面佛.png",
+   "云外镜": "assets/shishen/avatars/SSR/云外镜.png",
+   "伊邪那美": "assets/shishen/avatars/SSR/伊邪那美.png",
+   "八岐大蛇": "assets/shishen/avatars/SSR/八岐大蛇.png",
+   "初音未来": "assets/shishen/avatars/SSR/初音未来.png",
+   "千姬": "assets/shishen/avatars/SSR/千姬.png",
+   "卑弥呼": "assets/shishen/avatars/SSR/卑弥呼.png",
+   "卖药郎": "assets/shishen/avatars/SSR/卖药郎.png",
+   "咲耶": "assets/shishen/avatars/SSR/咲耶.png",
+   "嘴平伊之助": "assets/shishen/avatars/SSR/嘴平伊之助.png",
+   "坂田银时": "assets/shishen/avatars/SSR/坂田银时.png",
+   "夏目&猫老师": "assets/shishen/avatars/SSR/夏目&猫老师.png",
+   "夜刀神": "assets/shishen/avatars/SSR/夜刀神.png",
+   "大天狗": "assets/shishen/avatars/SSR/大天狗.png",
+   "大岳丸": "assets/shishen/avatars/SSR/大岳丸.png",
+   "天照": "assets/shishen/avatars/SSR/天照.png",
+   "奴良陆生": "assets/shishen/avatars/SSR/奴良陆生.png",
+   "妖刀姬": "assets/shishen/avatars/SSR/妖刀姬.png",
+   "孔雀明王": "assets/shishen/avatars/SSR/孔雀明王.png",
+   "季": "assets/shishen/avatars/SSR/季.png",
+   "寻香行": "assets/shishen/avatars/SSR/寻香行.png",
+   "封阳君": "assets/shishen/avatars/SSR/封阳君.png",
+   "小鹿男": "assets/shishen/avatars/SSR/小鹿男.png",
+   "山风": "assets/shishen/avatars/SSR/山风.png",
+   "巡音流歌": "assets/shishen/avatars/SSR/巡音流歌.png",
+   "市加美": "assets/shishen/avatars/SSR/市加美.png",
+   "帝释天": "assets/shishen/avatars/SSR/帝释天.png",
+   "平将门": "assets/shishen/avatars/SSR/平将门.png",
+   "彼岸花": "assets/shishen/avatars/SSR/彼岸花.png",
+   "御馔津": "assets/shishen/avatars/SSR/御馔津.png",
+   "思金神": "assets/shishen/avatars/SSR/思金神.png",
+   "我妻善逸": "assets/shishen/avatars/SSR/我妻善逸.png",
+   "月读": "assets/shishen/avatars/SSR/月读.png",
+   "木之本樱": "assets/shishen/avatars/SSR/木之本樱.png",
+   "杀生丸": "assets/shishen/avatars/SSR/杀生丸.png",
+   "李小狼": "assets/shishen/avatars/SSR/李小狼.png",
+   "桔梗": "assets/shishen/avatars/SSR/桔梗.png",
+   "歌留多": "assets/shishen/avatars/SSR/歌留多.png",
+   "毗沙门天": "assets/shishen/avatars/SSR/毗沙门天.png",
+   "泷": "assets/shishen/avatars/SSR/泷.png",
+   "泷夜叉姬": "assets/shishen/avatars/SSR/泷夜叉姬.png",
+   "洛天依": "assets/shishen/avatars/SSR/洛天依.png",
+   "灶门炭治郎": "assets/shishen/avatars/SSR/灶门炭治郎.png",
+   "灶门祢豆子": "assets/shishen/avatars/SSR/灶门祢豆子.png",
+   "犬夜叉": "assets/shishen/avatars/SSR/犬夜叉.png",
+   "猫川": "assets/shishen/avatars/SSR/猫川.png",
+   "玉藻前": "assets/shishen/avatars/SSR/玉藻前.png",
+   "申屠子夜": "assets/shishen/avatars/SSR/申屠子夜.png",
+   "白藏主": "assets/shishen/avatars/SSR/白藏主.png",
+   "石长姬": "assets/shishen/avatars/SSR/石长姬.png",
+   "神乐&定春": "assets/shishen/avatars/SSR/神乐&定春.png",
+   "神无月": "assets/shishen/avatars/SSR/神无月.png",
+   "祸津神": "assets/shishen/avatars/SSR/祸津神.png",
+   "紧那罗": "assets/shishen/avatars/SSR/紧那罗.png",
+   "缘结神": "assets/shishen/avatars/SSR/缘结神.png",
+   "花鸟卷": "assets/shishen/avatars/SSR/花鸟卷.png",
+   "茨木童子": "assets/shishen/avatars/SSR/茨木童子.png",
+   "荒": "assets/shishen/avatars/SSR/荒.png",
+   "荒川之主": "assets/shishen/avatars/SSR/荒川之主.png",
+   "荒骷髅": "assets/shishen/avatars/SSR/荒骷髅.png",
+   "葛叶": "assets/shishen/avatars/SSR/葛叶.png",
+   "言和": "assets/shishen/avatars/SSR/言和.png",
+   "言灵": "assets/shishen/avatars/SSR/言灵.png",
+   "辉夜姬": "assets/shishen/avatars/SSR/辉夜姬.png",
+   "酒吞童子": "assets/shishen/avatars/SSR/酒吞童子.png",
+   "铃彦姬": "assets/shishen/avatars/SSR/铃彦姬.png",
+   "铃鹿御前": "assets/shishen/avatars/SSR/铃鹿御前.png",
+   "镜音铃·连": "assets/shishen/avatars/SSR/镜音铃·连.png",
+   "闻人翊悬": "assets/shishen/avatars/SSR/闻人翊悬.png",
+   "阎魔": "assets/shishen/avatars/SSR/阎魔.png",
+   "阿修罗": "assets/shishen/avatars/SSR/阿修罗.png",
+   "雪御前": "assets/shishen/avatars/SSR/雪御前.png",
+   "雪童子": "assets/shishen/avatars/SSR/雪童子.png",
+   "青行灯": "assets/shishen/avatars/SSR/青行灯.png",
+   "面灵气": "assets/shishen/avatars/SSR/面灵气.png",
+   "须佐之男": "assets/shishen/avatars/SSR/须佐之男.png",
+   "食灵": "assets/shishen/avatars/SSR/食灵.png",
+   "饭笥": "assets/shishen/avatars/SSR/饭笥.png",
+   "鬼切": "assets/shishen/avatars/SSR/鬼切.png",
+   "鬼灯": "assets/shishen/avatars/SSR/鬼灯.png",
+   "鬼童丸": "assets/shishen/avatars/SSR/鬼童丸.png",
+   "鬼金羊": "assets/shishen/avatars/SSR/鬼金羊.png",
+   "黑崎一护": "assets/shishen/avatars/SSR/黑崎一护.png",
+   "龙珏": "assets/shishen/avatars/SSR/龙珏.png",
+   "一反木绵": "assets/shishen/avatars/SR/一反木绵.png",
+   "万年竹": "assets/shishen/avatars/SR/万年竹.png",
+   "久次良": "assets/shishen/avatars/SR/久次良.png",
+   "书翁": "assets/shishen/avatars/SR/书翁.png",
+   "二口女": "assets/shishen/avatars/SR/二口女.png",
+   "人面树": "assets/shishen/avatars/SR/人面树.png",
+   "以津真天": "assets/shishen/avatars/SR/以津真天.png",
+   "傀儡师": "assets/shishen/avatars/SR/傀儡师.png",
+   "入内雀": "assets/shishen/avatars/SR/入内雀.png",
+   "入殓师": "assets/shishen/avatars/SR/入殓师.png",
+   "凤凰火": "assets/shishen/avatars/SR/凤凰火.png",
+   "判官": "assets/shishen/avatars/SR/判官.png",
+   "化鲸": "assets/shishen/avatars/SR/化鲸.png",
+   "匣中少女": "assets/shishen/avatars/SR/匣中少女.png",
+   "吸血姬": "assets/shishen/avatars/SR/吸血姬.png",
+   "夜叉": "assets/shishen/avatars/SR/夜叉.png",
+   "天逆每": "assets/shishen/avatars/SR/天逆每.png",
+   "妖狐": "assets/shishen/avatars/SR/妖狐.png",
+   "妖琴师": "assets/shishen/avatars/SR/妖琴师.png",
+   "姑获鸟": "assets/shishen/avatars/SR/姑获鸟.png",
+   "孟婆": "assets/shishen/avatars/SR/孟婆.png",
+   "小松丸": "assets/shishen/avatars/SR/小松丸.png",
+   "川猿": "assets/shishen/avatars/SR/川猿.png",
+   "弈": "assets/shishen/avatars/SR/弈.png",
+   "惠比寿": "assets/shishen/avatars/SR/惠比寿.png",
+   "慧明灯": "assets/shishen/avatars/SR/慧明灯.png",
+   "於菊虫": "assets/shishen/avatars/SR/於菊虫.png",
+   "日和坊": "assets/shishen/avatars/SR/日和坊.png",
+   "星熊童子": "assets/shishen/avatars/SR/星熊童子.png",
+   "朽木露琪亚": "assets/shishen/avatars/SR/朽木露琪亚.png",
+   "桃花妖": "assets/shishen/avatars/SR/桃花妖.png",
+   "樱花妖": "assets/shishen/avatars/SR/樱花妖.png",
+   "海坊主": "assets/shishen/avatars/SR/海坊主.png",
+   "海忍": "assets/shishen/avatars/SR/海忍.png",
+   "清姬": "assets/shishen/avatars/SR/清姬.png",
+   "湍津姬": "assets/shishen/avatars/SR/湍津姬.png",
+   "灵海蝶": "assets/shishen/avatars/SR/灵海蝶.png",
+   "烟烟罗": "assets/shishen/avatars/SR/烟烟罗.png",
+   "犬神": "assets/shishen/avatars/SR/犬神.png",
+   "猫掌柜": "assets/shishen/avatars/SR/猫掌柜.png",
+   "白狼": "assets/shishen/avatars/SR/白狼.png",
+   "白童子": "assets/shishen/avatars/SR/白童子.png",
+   "百目鬼": "assets/shishen/avatars/SR/百目鬼.png",
+   "盗人神": "assets/shishen/avatars/SR/盗人神.png",
+   "粉婆婆": "assets/shishen/avatars/SR/粉婆婆.png",
+   "纸舞": "assets/shishen/avatars/SR/纸舞.png",
+   "络新妇": "assets/shishen/avatars/SR/络新妇.png",
+   "般若": "assets/shishen/avatars/SR/般若.png",
+   "薰": "assets/shishen/avatars/SR/薰.png",
+   "蝎女": "assets/shishen/avatars/SR/蝎女.png",
+   "蟹姬": "assets/shishen/avatars/SR/蟹姬.png",
+   "跳跳哥哥": "assets/shishen/avatars/SR/跳跳哥哥.png",
+   "迦楼罗": "assets/shishen/avatars/SR/迦楼罗.png",
+   "追月神": "assets/shishen/avatars/SR/追月神.png",
+   "金鱼姬": "assets/shishen/avatars/SR/金鱼姬.png",
+   "镰鼬": "assets/shishen/avatars/SR/镰鼬.png",
+   "阿香": "assets/shishen/avatars/SR/阿香.png",
+   "雪女": "assets/shishen/avatars/SR/雪女.png",
+   "青坊主": "assets/shishen/avatars/SR/青坊主.png",
+   "风狸": "assets/shishen/avatars/SR/风狸.png",
+   "食梦貘": "assets/shishen/avatars/SR/食梦貘.png",
+   "饴细工": "assets/shishen/avatars/SR/饴细工.png",
+   "骨女": "assets/shishen/avatars/SR/骨女.png",
+   "鬼使白": "assets/shishen/avatars/SR/鬼使白.png",
+   "鬼使黑": "assets/shishen/avatars/SR/鬼使黑.png",
+   "鬼女红叶": "assets/shishen/avatars/SR/鬼女红叶.png",
+   "鸩": "assets/shishen/avatars/SR/鸩.png",
+   "黑童子": "assets/shishen/avatars/SR/黑童子.png",
+   "三尾狐": "assets/shishen/avatars/R/三尾狐.png",
+   "丑时之女": "assets/shishen/avatars/R/丑时之女.png",
+   "九命猫": "assets/shishen/avatars/R/九命猫.png",
+   "兔丸": "assets/shishen/avatars/R/兔丸.png",
+   "兵俑": "assets/shishen/avatars/R/兵俑.png",
+   "古笼火": "assets/shishen/avatars/R/古笼火.png",
+   "垢尝": "assets/shishen/avatars/R/垢尝.png",
+   "天井下": "assets/shishen/avatars/R/天井下.png",
+   "小袖之手": "assets/shishen/avatars/R/小袖之手.png",
+   "山兔": "assets/shishen/avatars/R/山兔.png",
+   "山童": "assets/shishen/avatars/R/山童.png",
+   "巫蛊师": "assets/shishen/avatars/R/巫蛊师.png",
+   "座敷童子": "assets/shishen/avatars/R/座敷童子.png",
+   "影鳄": "assets/shishen/avatars/R/影鳄.png",
+   "数珠": "assets/shishen/avatars/R/数珠.png",
+   "椒图": "assets/shishen/avatars/R/椒图.png",
+   "武士之灵": "assets/shishen/avatars/R/武士之灵.png",
+   "河童": "assets/shishen/avatars/R/河童.png",
+   "独眼小僧": "assets/shishen/avatars/R/独眼小僧.png",
+   "狸猫": "assets/shishen/avatars/R/狸猫.png",
+   "童女": "assets/shishen/avatars/R/童女.png",
+   "童男": "assets/shishen/avatars/R/童男.png",
+   "管狐": "assets/shishen/avatars/R/管狐.png",
+   "萤草": "assets/shishen/avatars/R/萤草.png",
+   "虫师": "assets/shishen/avatars/R/虫师.png",
+   "蜜桃&芥子": "assets/shishen/avatars/R/蜜桃&芥子.png",
+   "蝴蝶精": "assets/shishen/avatars/R/蝴蝶精.png",
+   "觉": "assets/shishen/avatars/R/觉.png",
+   "跳跳妹妹": "assets/shishen/avatars/R/跳跳妹妹.png",
+   "跳跳弟弟": "assets/shishen/avatars/R/跳跳弟弟.png",
+   "铁鼠": "assets/shishen/avatars/R/铁鼠.png",
+   "雨女": "assets/shishen/avatars/R/雨女.png",
+   "青蛙瓷器": "assets/shishen/avatars/R/青蛙瓷器.png",
+   "食发鬼": "assets/shishen/avatars/R/食发鬼.png",
+   "饿鬼": "assets/shishen/avatars/R/饿鬼.png",
+   "首无": "assets/shishen/avatars/R/首无.png",
+   "鲤鱼精": "assets/shishen/avatars/R/鲤鱼精.png",
+   "鸦天狗": "assets/shishen/avatars/R/鸦天狗.png",
+   "一目连呱": "assets/shishen/avatars/N/一目连呱.png",
+   "两面佛呱": "assets/shishen/avatars/N/两面佛呱.png",
+   "唐纸伞妖": "assets/shishen/avatars/N/唐纸伞妖.png",
+   "大天狗呱": "assets/shishen/avatars/N/大天狗呱.png",
+   "天邪鬼绿": "assets/shishen/avatars/N/天邪鬼绿.png",
+   "天邪鬼赤": "assets/shishen/avatars/N/天邪鬼赤.png",
+   "天邪鬼青": "assets/shishen/avatars/N/天邪鬼青.png",
+   "天邪鬼黄": "assets/shishen/avatars/N/天邪鬼黄.png",
+   "妖刀姬呱": "assets/shishen/avatars/N/妖刀姬呱.png",
+   "寄生魂": "assets/shishen/avatars/N/寄生魂.png",
+   "小鹿男呱": "assets/shishen/avatars/N/小鹿男呱.png",
+   "帚神": "assets/shishen/avatars/N/帚神.png",
+   "彼岸花呱": "assets/shishen/avatars/N/彼岸花呱.png",
+   "御馔津呱": "assets/shishen/avatars/N/御馔津呱.png",
+   "提灯小僧": "assets/shishen/avatars/N/提灯小僧.png",
+   "涂壁": "assets/shishen/avatars/N/涂壁.png",
+   "灯笼鬼": "assets/shishen/avatars/N/灯笼鬼.png",
+   "玉藻前呱": "assets/shishen/avatars/N/玉藻前呱.png",
+   "生剥鬼": "assets/shishen/avatars/N/生剥鬼.png",
+   "盗墓小鬼": "assets/shishen/avatars/N/盗墓小鬼.png",
+   "花鸟卷呱": "assets/shishen/avatars/N/花鸟卷呱.png",
+   "茨木呱": "assets/shishen/avatars/N/茨木呱.png",
+   "荒呱": "assets/shishen/avatars/N/荒呱.png",
+   "荒川呱": "assets/shishen/avatars/N/荒川呱.png",
+   "赤舌": "assets/shishen/avatars/N/赤舌.png",
+   "辉夜姬呱": "assets/shishen/avatars/N/辉夜姬呱.png",
+   "酒吞呱": "assets/shishen/avatars/N/酒吞呱.png",
+   "阎魔呱": "assets/shishen/avatars/N/阎魔呱.png",
+   "雪童子呱": "assets/shishen/avatars/N/雪童子呱.png",
+   "青行灯呱": "assets/shishen/avatars/N/青行灯呱.png",
+   "妖刀姬·绯夜猎刃": "assets/shishen/avatars/UR/妖刀姬·绯夜猎刃.png"
+  },
+  "placeholders": {
+   "__藤原道长__": "阴阳师 · 藤原道长",
+   "__神乐__": "阴阳师 · 神乐"
+  }
+ },
+ "aliases": {
+  "禅吞": [
+   "禅心云外镜",
+   "鬼王酒吞童子"
+  ],
+  "鬼吞": [
+   "鬼王酒吞童子"
+  ],
+  "神卑石": [
+   "神无月",
+   "卑弥呼",
+   "石长姬"
+  ],
+  "神卑": [
+   "神无月",
+   "卑弥呼"
+  ],
+  "神石": [
+   "神无月",
+   "石长姬"
+  ],
+  "神平": [
+   "神无月",
+   "平将门"
+  ],
+  "神龙": [
+   "神无月",
+   "龙珏"
+  ],
+  "云熊": [
+   "云外镜",
+   "神酿星熊童子"
+  ],
+  "离封": [
+   "不知火",
+   "封阳君"
+  ],
+  "狐毗": [
+   "不相狐禅",
+   "毗沙门天"
+  ],
+  "卑因": [
+   "卑弥呼",
+   "因幡辉夜姬"
+  ],
+  "须羊": [
+   "须佐之男",
+   "鬼金羊"
+  ],
+  "凤雪": [
+   "百羽凤凰火",
+   "蝉冰雪女"
+  ],
+  "ban须": [
+   "须佐之男"
+  ],
+  "SSR不见岳": [
+   "不见岳"
+  ],
+  "SP铃彦姬": [
+   "天火命铃彦姬"
+  ],
+  "铃彦姬": [
+   "铃彦姬"
+  ],
+  "SP阎魔": [
+   "大夜摩天阎魔"
+  ],
+  "摩托": [
+   "大夜摩天阎魔"
+  ],
+  "炎魔": [
+   "阎魔"
+  ],
+  "阎魔": [
+   "阎魔"
+  ],
+  "SP雪女": [
+   "蝉冰雪女"
+  ],
+  "SP鬼切": [
+   "天剑韧心鬼切"
+  ],
+  "输出切": [
+   "天剑韧心鬼切"
+  ],
+  "奶切": [
+   "天剑韧心鬼切"
+  ],
+  "SP惠比寿": [
+   "晨晖惠比寿"
+  ],
+  "SP星熊": [
+   "神酿星熊童子"
+  ],
+  "SP铃鹿": [
+   "龙吟铃鹿御前"
+  ],
+  "SSR铃鹿": [
+   "铃鹿御前"
+  ],
+  "铃鹿": [
+   "铃鹿御前"
+  ],
+  "SP清姬": [
+   "缚骨清姬"
+  ],
+  "SP桃花": [
+   "灼华桃花妖"
+  ],
+  "SP吸血姬": [
+   "蚀月吸血姬"
+  ],
+  "SP山风": [
+   "初翎山风"
+  ],
+  "岚": [
+   "初翎山风"
+  ],
+  "SP白": [
+   "梦山白藏主"
+  ],
+  "SP凤": [
+   "百羽凤凰火"
+  ],
+  "凤凰": [
+   "百羽凤凰火"
+  ],
+  "凤": [
+   "百羽凤凰火"
+  ],
+  "平将门": [
+   "平将门"
+  ],
+  "肉平": [
+   "平将门"
+  ],
+  "输出平": [
+   "平将门"
+  ],
+  "石长姬": [
+   "石长姬"
+  ],
+  "雪御前": [
+   "雪御前"
+  ],
+  "面灵气": [
+   "面灵气"
+  ],
+  "鬼金羊": [
+   "鬼金羊"
+  ],
+  "须佐": [
+   "须佐之男"
+  ],
+  "大蛇": [
+   "八岐大蛇"
+  ],
+  "卑弥呼": [
+   "卑弥呼"
+  ],
+  "卑": [
+   "卑弥呼"
+  ],
+  "神无月": [
+   "神无月"
+  ],
+  "龙珏": [
+   "龙珏"
+  ],
+  "龙女": [
+   "龙珏"
+  ],
+  "龙": [
+   "龙珏"
+  ],
+  "不知火": [
+   "不知火"
+  ],
+  "离": [
+   "不知火"
+  ],
+  "不相狐禅": [
+   "不相狐禅"
+  ],
+  "狐": [
+   "不相狐禅"
+  ],
+  "孔雀": [
+   "孔雀明王"
+  ],
+  "咲耶": [
+   "咲耶"
+  ],
+  "封阳君": [
+   "封阳君"
+  ],
+  "思金神": [
+   "思金神"
+  ],
+  "言和": [
+   "言和"
+  ],
+  "鬼童丸": [
+   "鬼童丸"
+  ],
+  "云外镜": [
+   "云外镜"
+  ],
+  "云": [
+   "云外镜"
+  ],
+  "千姬": [
+   "千姬"
+  ],
+  "荒骷髅": [
+   "荒骷髅"
+  ],
+  "毗沙门天": [
+   "毗沙门天"
+  ],
+  "毗": [
+   "毗沙门天"
+  ],
+  "神乐": [
+   "__神乐__"
+  ],
+  "藤原": [
+   "__藤原道长__"
+  ],
+  "酒吞": [
+   "酒吞童子"
+  ],
+  "禅心云外镜": [
+   "禅心云外镜"
+  ],
+  "鬼王酒吞童子": [
+   "鬼王酒吞童子"
+  ]
+ },
+ "yuhun": [
+  "出世螺",
+  "薙魂",
+  "剃魂",
+  "青女房",
+  "共潜",
+  "蚌精",
+  "狂骨",
+  "骰子鬼",
+  "奉海图",
+  "海图",
+  "坐地",
+  "抢速卡",
+  "挖土",
+  "协战",
+  "转体系",
+  "超吞",
+  "超毗"
+ ],
+ "schemes": [
+  {
+   "id": "chantun",
+   "name": "示例方案-禅吞",
+   "builtin": true,
+   "start": "n1",
+   "floating": [
+    "n82",
+    "n87"
+   ],
+   "nodes": {
+    "n7": {
+     "id": "n7",
+     "title": "我方：SP雪女、平将门（肉平）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "蝉冰雪女",
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n6": {
+     "id": "n6",
+     "title": "敌方：石长姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n7"
+     ]
+    },
+    "n9": {
+     "id": "n9",
+     "title": "我方：石长姬、平将门（肉平）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "石长姬",
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n8": {
+     "id": "n8",
+     "title": "敌方：SP吸血姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "蚀月吸血姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n9"
+     ]
+    },
+    "n11": {
+     "id": "n11",
+     "title": "我方：平将门（肉平）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n10": {
+     "id": "n10",
+     "title": "敌方：SP桃花、SP吸血姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "灼华桃花妖",
+      "蚀月吸血姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n11"
+     ]
+    },
+    "n13": {
+     "id": "n13",
+     "title": "我方：石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n12": {
+     "id": "n12",
+     "title": "敌方：平将门（输出平）",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n13"
+     ]
+    },
+    "n15": {
+     "id": "n15",
+     "title": "我方：平将门（输出平）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n14": {
+     "id": "n14",
+     "title": "敌方：平将门（肉平）",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n15"
+     ]
+    },
+    "n5": {
+     "id": "n5",
+     "title": "猜5手卡：",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n6",
+      "n8",
+      "n10",
+      "n12",
+      "n14"
+     ]
+    },
+    "n4": {
+     "id": "n4",
+     "title": "我方：禅吞毗凤",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "毗沙门天",
+      "百羽凤凰火"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n5"
+     ]
+    },
+    "n3": {
+     "id": "n3",
+     "title": "敌方：禅吞毗X",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n4"
+     ]
+    },
+    "n2": {
+     "id": "n2",
+     "title": "禅吞内战",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n3"
+     ]
+    },
+    "n22": {
+     "id": "n22",
+     "title": "我方：炎魔一速：SP雪女",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "阎魔",
+      "蝉冰雪女"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n23": {
+     "id": "n23",
+     "title": "我方：炎魔没一速：SP鬼切（输出切）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "阎魔",
+      "天剑韧心鬼切"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n24": {
+     "id": "n24",
+     "title": "我方：骰子鬼SP惠比寿",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "晨晖惠比寿"
+     ],
+     "yuhun": [
+      "骰子鬼"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n21": {
+     "id": "n21",
+     "title": "敌方4手：面灵气",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "面灵气"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n22",
+      "n23",
+      "n24"
+     ]
+    },
+    "n20": {
+     "id": "n20",
+     "title": "我方4手：雪御前",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "雪御前"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n21"
+     ]
+    },
+    "n19": {
+     "id": "n19",
+     "title": "敌方3手：石长姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n20"
+     ]
+    },
+    "n27": {
+     "id": "n27",
+     "title": "我方5手：SP星熊",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "神酿星熊童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n26": {
+     "id": "n26",
+     "title": "我方4手：石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n27"
+     ]
+    },
+    "n25": {
+     "id": "n25",
+     "title": "敌方3手：平将门",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n26"
+     ]
+    },
+    "n18": {
+     "id": "n18",
+     "title": "我方：禅吞炎魔",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n19",
+      "n25"
+     ]
+    },
+    "n17": {
+     "id": "n17",
+     "title": "敌方：神龙",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "神无月",
+      "龙珏"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n18"
+     ]
+    },
+    "n33": {
+     "id": "n33",
+     "title": "我方5手：鬼金羊",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "鬼金羊"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n32": {
+     "id": "n32",
+     "title": "敌方4手：毗 坐地",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "毗沙门天"
+     ],
+     "yuhun": [
+      "坐地"
+     ],
+     "note": "",
+     "children": [
+      "n33"
+     ]
+    },
+    "n35": {
+     "id": "n35",
+     "title": "我方5手：SP星熊",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "神酿星熊童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n34": {
+     "id": "n34",
+     "title": "敌方4手：抢速卡",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [
+      "抢速卡"
+     ],
+     "note": "",
+     "children": [
+      "n35"
+     ]
+    },
+    "n31": {
+     "id": "n31",
+     "title": "我方4手：炎魔",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n32",
+      "n34"
+     ]
+    },
+    "n30": {
+     "id": "n30",
+     "title": "敌方3手：龙女",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "龙珏"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n31"
+     ]
+    },
+    "n41": {
+     "id": "n41",
+     "title": "我方：SP铃鹿，带藤原，鬼金羊跳SP凤，打毗",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "龙吟铃鹿御前",
+      "__藤原道长__",
+      "鬼金羊",
+      "百羽凤凰火",
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n40": {
+     "id": "n40",
+     "title": "敌方：SP山风",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "初翎山风"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n41"
+     ]
+    },
+    "n43": {
+     "id": "n43",
+     "title": "同上",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n42": {
+     "id": "n42",
+     "title": "敌方：SP雪女",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "蝉冰雪女"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n43"
+     ]
+    },
+    "n45": {
+     "id": "n45",
+     "title": "我方：SP铃鹿，带神乐，鬼金羊跳SP凤，打毗",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "龙吟铃鹿御前",
+      "__神乐__",
+      "鬼金羊",
+      "百羽凤凰火",
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n44": {
+     "id": "n44",
+     "title": "敌方：SP清姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "缚骨清姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n45"
+     ]
+    },
+    "n39": {
+     "id": "n39",
+     "title": "猜5手卡：",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n40",
+      "n42",
+      "n44"
+     ]
+    },
+    "n38": {
+     "id": "n38",
+     "title": "敌方4手：SP凤",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "百羽凤凰火"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n39"
+     ]
+    },
+    "n37": {
+     "id": "n37",
+     "title": "我方4手：鬼金羊",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "鬼金羊"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n38"
+     ]
+    },
+    "n36": {
+     "id": "n36",
+     "title": "地方3手：毗  坐地",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "毗沙门天"
+     ],
+     "yuhun": [
+      "坐地"
+     ],
+     "note": "",
+     "children": [
+      "n37"
+     ]
+    },
+    "n29": {
+     "id": "n29",
+     "title": "我方：禅吞石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n30",
+      "n36"
+     ]
+    },
+    "n28": {
+     "id": "n28",
+     "title": "敌方：神平",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "神无月",
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n29"
+     ]
+    },
+    "n16": {
+     "id": "n16",
+     "title": "神平龙、毗体系",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "神无月",
+      "平将门",
+      "龙珏",
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n17",
+      "n28"
+     ]
+    },
+    "n51": {
+     "id": "n51",
+     "title": "我方5手：鬼金羊（我方的炎魔一速）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "鬼金羊",
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n52": {
+     "id": "n52",
+     "title": "我方5手：再来个炎魔、摩托（SP阎魔） （攻击>4600），电石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "阎魔",
+      "大夜摩天阎魔",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n50": {
+     "id": "n50",
+     "title": "敌方4手：SP铃鹿",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "龙吟铃鹿御前"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n51",
+      "n52"
+     ]
+    },
+    "n54": {
+     "id": "n54",
+     "title": "同上",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n53": {
+     "id": "n53",
+     "title": "敌方4手：炎魔",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n54"
+     ]
+    },
+    "n49": {
+     "id": "n49",
+     "title": "我方4手：狂骨须佐",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "须佐之男"
+     ],
+     "yuhun": [
+      "狂骨"
+     ],
+     "note": "",
+     "children": [
+      "n50",
+      "n53"
+     ]
+    },
+    "n48": {
+     "id": "n48",
+     "title": "敌方3手：神卑石都有",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "神无月",
+      "卑弥呼",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n49"
+     ]
+    },
+    "n47": {
+     "id": "n47",
+     "title": "我方：禅吞炎魔",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n48"
+     ]
+    },
+    "n56": {
+     "id": "n56",
+     "title": "我方：禅吞摩托+须羊（同上）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "大夜摩天阎魔",
+      "须佐之男",
+      "鬼金羊"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n57": {
+     "id": "n57",
+     "title": "我方：禅吞摩托+凤雪（超吞）（摩托没速度）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "大夜摩天阎魔",
+      "百羽凤凰火",
+      "蝉冰雪女"
+     ],
+     "yuhun": [
+      "超吞(快过鬼吞)"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n55": {
+     "id": "n55",
+     "title": "对面ban炎魔",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n56",
+      "n57"
+     ]
+    },
+    "n46": {
+     "id": "n46",
+     "title": "神卑、神石",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "神无月",
+      "卑弥呼",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n47",
+      "n55"
+     ]
+    },
+    "n60": {
+     "id": "n60",
+     "title": "同上，须佐+双炎魔",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "须佐之男",
+      "阎魔"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n61": {
+     "id": "n61",
+     "title": "或：禅吞炎魔凤凰SP雪女",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "阎魔",
+      "百羽凤凰火",
+      "蝉冰雪女"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n59": {
+     "id": "n59",
+     "title": "敌方正常挖土",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [
+      "挖土"
+     ],
+     "note": "",
+     "children": [
+      "n60",
+      "n61"
+     ]
+    },
+    "n63": {
+     "id": "n63",
+     "title": "我方禅吞炎魔+SP山风（青女房）+SP雪女（共潜）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "阎魔",
+      "初翎山风",
+      "蝉冰雪女"
+     ],
+     "yuhun": [
+      "青女房",
+      "共潜"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n62": {
+     "id": "n62",
+     "title": "敌方可能出大蛇",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "八岐大蛇"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n63"
+     ]
+    },
+    "n58": {
+     "id": "n58",
+     "title": "卑因X挖土",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "卑弥呼",
+      "因幡辉夜姬"
+     ],
+     "yuhun": [
+      "挖土"
+     ],
+     "note": "",
+     "children": [
+      "n59",
+      "n62"
+     ]
+    },
+    "n66": {
+     "id": "n66",
+     "title": "禅吞+封阳君（超毗）+SP凤（剃魂）+摩托，带神乐，封单点控铃鹿",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "封阳君",
+      "百羽凤凰火",
+      "大夜摩天阎魔",
+      "__神乐__",
+      "铃鹿御前"
+     ],
+     "yuhun": [
+      "超毗(快过毗沙门天)",
+      "薙魂"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n65": {
+     "id": "n65",
+     "title": "敌方：狐毗SSR铃鹿+须佐",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "不相狐禅",
+      "毗沙门天",
+      "铃鹿御前",
+      "须佐之男"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n66"
+     ]
+    },
+    "n68": {
+     "id": "n68",
+     "title": "禅吞+封阳君+石长姬+咲耶（跑过狐）",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "封阳君",
+      "石长姬",
+      "咲耶",
+      "不相狐禅"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n67": {
+     "id": "n67",
+     "title": "敌方：狐毗SP铃鹿+鬼吞",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "不相狐禅",
+      "毗沙门天",
+      "龙吟铃鹿御前",
+      "鬼王酒吞童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n68"
+     ]
+    },
+    "n64": {
+     "id": "n64",
+     "title": "狐毗体系",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "不相狐禅",
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n65",
+      "n67"
+     ]
+    },
+    "n72": {
+     "id": "n72",
+     "title": "我方：炎魔+咲耶",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "阎魔",
+      "咲耶"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n71": {
+     "id": "n71",
+     "title": "敌方：离封石长姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "不知火",
+      "封阳君",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n72"
+     ]
+    },
+    "n74": {
+     "id": "n74",
+     "title": "我方：肉平将门（出世螺或纯肉1500防御1w+生命）+孔雀",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门",
+      "孔雀明王"
+     ],
+     "yuhun": [
+      "出世螺"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n73": {
+     "id": "n73",
+     "title": "敌方：离封酒吞",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "不知火",
+      "封阳君",
+      "酒吞童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n74"
+     ]
+    },
+    "n70": {
+     "id": "n70",
+     "title": "我方：离封石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "不知火",
+      "封阳君",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n71",
+      "n73"
+     ]
+    },
+    "n69": {
+     "id": "n69",
+     "title": "离封",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "不知火",
+      "封阳君"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n70"
+     ]
+    },
+    "n77": {
+     "id": "n77",
+     "title": "我方：禅吞思金神+言和+石长姬",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "思金神",
+      "言和",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n76": {
+     "id": "n76",
+     "title": "敌方：云熊千姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "云外镜",
+      "神酿星熊童子",
+      "千姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n77"
+     ]
+    },
+    "n79": {
+     "id": "n79",
+     "title": "我方：禅吞思金神+言和+鬼童丸（控制御魂但做输出）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "思金神",
+      "言和",
+      "鬼童丸"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n78": {
+     "id": "n78",
+     "title": "敌方：云熊SP惠比寿",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "云外镜",
+      "神酿星熊童子",
+      "晨晖惠比寿"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n79"
+     ]
+    },
+    "n75": {
+     "id": "n75",
+     "title": "云+SP星熊",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "云外镜",
+      "神酿星熊童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n76",
+      "n78"
+     ]
+    },
+    "n81": {
+     "id": "n81",
+     "title": "我方：禅吞+蚌精SP白+炎魔/摩托/SP雪女/剃魂奶切/孔雀海图",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子",
+      "梦山白藏主",
+      "阎魔",
+      "大夜摩天阎魔",
+      "蝉冰雪女",
+      "天剑韧心鬼切",
+      "孔雀明王"
+     ],
+     "yuhun": [
+      "蚌精",
+      "薙魂",
+      "奉海图"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n80": {
+     "id": "n80",
+     "title": "协战",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [
+      "协战"
+     ],
+     "note": "",
+     "children": [
+      "n81"
+     ]
+    },
+    "n1": {
+     "id": "n1",
+     "title": "禅吞开",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n2",
+      "n16",
+      "n46",
+      "n58",
+      "n64",
+      "n69",
+      "n75",
+      "n80"
+     ]
+    },
+    "n84": {
+     "id": "n84",
+     "title": "SP凤开",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "百羽凤凰火"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n83": {
+     "id": "n83",
+     "title": "ban须",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "须佐之男"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n84"
+     ]
+    },
+    "n86": {
+     "id": "n86",
+     "title": "禅吞开",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [
+      "禅心云外镜",
+      "鬼王酒吞童子"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n85": {
+     "id": "n85",
+     "title": "ban其他",
+     "camp": "neutral",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n86"
+     ]
+    },
+    "n82": {
+     "id": "n82",
+     "title": "看对面ban位",
+     "camp": "free",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n83",
+      "n85"
+     ]
+    },
+    "n89": {
+     "id": "n89",
+     "title": "我方：和上面具体体系一样",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n88": {
+     "id": "n88",
+     "title": "敌方：转体系",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [],
+     "yuhun": [
+      "转体系"
+     ],
+     "note": "",
+     "children": [
+      "n89"
+     ]
+    },
+    "n93": {
+     "id": "n93",
+     "title": "我方4手：平将门（输出）",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n92": {
+     "id": "n92",
+     "title": "敌方：荒骷髅+SP吸血姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "荒骷髅",
+      "蚀月吸血姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n93"
+     ]
+    },
+    "n95": {
+     "id": "n95",
+     "title": "我方：平将门（输出）+SSR不见岳",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门",
+      "不见岳"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": []
+    },
+    "n94": {
+     "id": "n94",
+     "title": "敌方3手：毗",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "毗沙门天"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n95"
+     ]
+    },
+    "n97": {
+     "id": "n97",
+     "title": "我方：平将门（输出）+奉海图孔雀",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "平将门",
+      "孔雀明王"
+     ],
+     "yuhun": [
+      "奉海图"
+     ],
+     "note": "",
+     "children": []
+    },
+    "n96": {
+     "id": "n96",
+     "title": "敌方：思金神、SP铃彦姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "思金神",
+      "天火命铃彦姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n97"
+     ]
+    },
+    "n91": {
+     "id": "n91",
+     "title": "我方：SP凤+离封",
+     "camp": "mine",
+     "hand": null,
+     "shishen": [
+      "百羽凤凰火",
+      "不知火",
+      "封阳君"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n92",
+      "n94",
+      "n96"
+     ]
+    },
+    "n90": {
+     "id": "n90",
+     "title": "敌方：SP凤+石长姬",
+     "camp": "enemy",
+     "hand": null,
+     "shishen": [
+      "百羽凤凰火",
+      "石长姬"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n91"
+     ]
+    },
+    "n87": {
+     "id": "n87",
+     "title": "ban须",
+     "camp": "free",
+     "hand": null,
+     "shishen": [
+      "须佐之男"
+     ],
+     "yuhun": [],
+     "note": "",
+     "children": [
+      "n88",
+      "n90"
+     ]
+    }
+   },
+   "sheet": {
+    "headers": [
+     "式神",
+     "指标",
+     "御魂套装",
+     "246号位",
+     "其他要求"
+    ],
+    "rows": [
+     [
+      "阎魔",
+      "速度",
+      "散件",
+      "速XX",
+      "攻击>4600"
+     ],
+     [
+      "鬼吞",
+      "生命",
+      "火灵+防御两件套",
+      "速生生",
+      "速度>210"
+     ]
+    ]
+   },
+   "rev": "010cca1293"
+  }
+ ],
+ "activeScheme": "chantun"
+}</script><script>
+/* ==================================================================
+   配置驱动引擎
+   1 Cfg    加载 / 合并 / 校验 / 保存
+   2 Graph  图分析（入度、悬空、环）与实例树构建
+   3 Layout 布局（全部参数来自配置）
+   4 Render 渲染（样式全部来自配置）
+   5 UI     交互、配置面板、节点编辑
+   ================================================================== */
+
+const EMBED = JSON.parse(document.getElementById('cfg-embed').textContent);
+const LS_KEY = 'chantun.config.v1';
+const NODE_DRAG_MIN = 3;        // 拖节点的位移阈值（画布坐标 px）：低于它仍算单击/双击
+const URL_CFG = 'config.json';
+
+/* 页面原始 HTML（此刻脚本刚开始跑，#world / 画布元素都还没生成，抓到的是干净骨架）。
+   导出「单 HTML 只读版」时用它当模板：换掉内嵌配置 + 注入内联头像 + 打开只读开关。 */
+const SRC_HTML = document.documentElement.outerHTML;
+/* 只读标记：由导出产物在 body 开头额外注入的一小段脚本把这个开关打开。
+   （注释里别写字面的 script 结束标签 —— 浏览器会在那里提前截断整个主脚本） */
+const READONLY = !!window.__READONLY__;
+
+let CFG = null, WARN = [], THEME = 'light';
+
+/* ---------------- 1. 配置层 ---------------- */
+
+// 字段级校验规则：路径 -> 类型 / 范围 / 默认值
+const SCHEMA = {
+  'layout.hGap':            {t:'num', min:0,   max:400, def:54},
+  'layout.vGap':            {t:'num', min:0,   max:200, def:13},
+  'layout.branchGap':       {t:'num', min:0,   max:300, def:26},
+  'layout.groupGap':        {t:'num', min:0,   max:600, def:120},
+  'layout.padX':            {t:'num', min:0,   max:200, def:30},
+  'layout.padTop':          {t:'num', min:0,   max:300, def:40},
+  'layout.canvasPad':       {t:'num', min:0,   max:400, def:60},
+  'layout.readableScale':   {t:'num', min:0.1, max:2,   def:0.85},
+  'layout.minScale':        {t:'num', min:0.02,max:1,   def:0.15},
+  'layout.maxScale':        {t:'num', min:1,   max:10,  def:3},
+  'layout.fitThreshold':    {t:'num', min:0.1, max:1,   def:0.5},
+  'layout.lineWidth':       {t:'num', min:0.5, max:8,   def:2},
+  'layout.sharedTitleMax':  {t:'num', min:0,   max:80,  def:10},
+  'style.font.node':        {t:'num', min:8,   max:40,  def:15},
+  'style.font.branch':      {t:'num', min:8,   max:48,  def:17},
+  'style.font.root':        {t:'num', min:10,  max:60,  def:22},
+  'style.font.chip':        {t:'num', min:8,   max:24,  def:12},
+  'style.lineHeight':       {t:'num', min:1,   max:2.5, def:1.45},
+  'style.node.minWidth':    {t:'num', min:80,  max:800, def:190},
+  'style.node.maxWidth':    {t:'num', min:120, max:900, def:404},
+  'style.node.padX':        {t:'num', min:0,   max:60,  def:12},
+  'style.node.padTop':      {t:'num', min:0,   max:60,  def:9},
+  'style.node.padBottom':   {t:'num', min:0,   max:60,  def:10},
+  'style.node.radius':      {t:'num', min:0,   max:30,  def:7},
+  'style.avatar.size':      {t:'num', min:16,  max:120, def:40},
+  'style.avatar.gap':       {t:'num', min:0,   max:30,  def:6},
+  'style.avatar.radius':    {t:'num', min:0,   max:30,  def:7},
+  'style.avatar.marginBottom':{t:'num',min:0,  max:40,  def:8},
+  'ui.clickFoldDelay':      {t:'num', min:0,   max:600, def:160},
+};
+const ENUM = {
+  'layout.sharedNodeMode': ['merge', 'collapse', 'expand'],   // 第一个是默认值：非法值兜底到发布版默认的 merge
+  'layout.columnMode':     ['depth', 'hand'],
+  'style.startTheme':      ['light', 'dark'],
+};
+
+function isObj(x){ return x && typeof x === 'object' && !Array.isArray(x); }
+function deepMerge(base, over){
+  if(!isObj(over)) return base;
+  const out = isObj(base) ? Object.assign({}, base) : {};
+  for(const k in over){
+    const b = out[k], o = over[k];
+    out[k] = (isObj(b) && isObj(o)) ? deepMerge(b, o) : o;
+  }
+  return out;
+}
+function getPath(o, p){ return p.split('.').reduce((a, k)=> (a && a[k] !== undefined) ? a[k] : undefined, o); }
+function setPath(o, p, v){
+  const ks = p.split('.'), last = ks.pop();
+  let cur = o;
+  for(const k of ks){ if(!isObj(cur[k])) cur[k] = {}; cur = cur[k]; }
+  cur[last] = v;
+}
+function warn(msg){ if(WARN.indexOf(msg) < 0) WARN.push(msg); }
+
+/* ---------------- 固化方案（builtin）与版本同步 ----------------
+   固化方案随页面发布（内嵌默认值 + 同目录 config.json），任何时候都在，不会因为清缓存丢失；
+   访客自己新建/改动的方案才是「本地方案」，只存在浏览器里。
+   作者更新了 config.json 里的固化方案时 rev 会变，这里把新版同步给老访客。 */
+let PUBLISHED = [];        // 发布基线里的固化方案（由 boot / 重读配置时注入）
+let PUB_BASE = null;       // 发布基线的整份配置（内嵌 + config.json），视图设置升级时拿它当新版
+
+function publishedBase(ext){ return deepMerge(EMBED, ext || null); }
+function publishedSchemes(ext){
+  const base = publishedBase(ext);
+  return (Array.isArray(base.schemes) ? base.schemes : [])
+    .filter(s => s && s.id && s.builtin !== false);
+}
+function setPublished(ext){ PUB_BASE = publishedBase(ext); PUBLISHED = publishedSchemes(ext); }
+function setPublishedList(list){ PUBLISHED = Array.isArray(list) ? list : []; }   // 供测试直连
+function setPublishedBase(base){ PUB_BASE = base || null; }                        // 供测试直连
+
+/* 视图设置（layout）的版本同步：
+   layout 是「怎么显示」而不是「图上有什么」，没有编辑入口，本地那份只是上次存盘时的快照。
+   老版本页面往 localStorage 里存过 sharedNodeMode:"collapse" 之类的旧偏好，
+   一打开新版就会被它压回去（表现：复用节点还是多画一个框）。
+   所以本地 layout 没有 rev、或比发布版旧时，整体换成发布版并提示一声。 */
+function syncLayoutRev(cfg, raw){
+  const pub = (PUB_BASE && isObj(PUB_BASE.layout)) ? PUB_BASE.layout
+            : (isObj(EMBED.layout) ? EMBED.layout : null);
+  if(!pub) return cfg;
+  const pr = Number(pub.rev);
+  const pubRev = isFinite(pr) ? pr : 0;
+  const localLayout = (raw && isObj(raw.layout)) ? raw.layout : null;
+  const lr = localLayout ? Number(localLayout.rev) : 0;
+  const localRev = isFinite(lr) ? lr : 0;
+  if(localRev >= pubRev) return cfg;                    // 本地不比发布版旧：尊重访客这份
+  cfg.layout = JSON.parse(JSON.stringify(pub));
+  if(localLayout && Object.keys(localLayout).length) {
+    warn('页面视图设置已升级：汇合节点改成「全图只画一个框 + 虚线箭头」；你本地存的旧显示偏好已重置');
+  }
+  return cfg;
+}
+
+/* 顶栏按钮（ui.buttons）也一律以发布版为准。
+   老页面把「编辑 / 页面设置（旧名叫「配置」）」这两个按钮写进了 localStorage，
+   页面配置面板删掉之后本地再没有合法来源改它，但那份旧快照会一直把顶栏压回 5 个按钮
+   —— 表现就是「明明已经删了，我打开还是有」。所以这里无条件用发布版那份。 */
+function syncUiButtons(cfg, raw){
+  const pub = (PUB_BASE && Array.isArray(PUB_BASE.ui && PUB_BASE.ui.buttons)) ? PUB_BASE.ui.buttons
+            : (isObj(EMBED.ui) && Array.isArray(EMBED.ui.buttons) ? EMBED.ui.buttons : null);
+  if(!pub || !pub.length) return cfg;
+  const local = (raw && isObj(raw.ui) && Array.isArray(raw.ui.buttons)) ? raw.ui.buttons : null;
+  const same = local && local.length === pub.length &&
+    local.every((b, i) => b && pub[i] && b.id === pub[i].id && b.label === pub[i].label);
+  if(same) return cfg;
+  cfg.ui = cfg.ui || {};
+  cfg.ui.buttons = JSON.parse(JSON.stringify(pub));
+  if(local && local.length) warn('顶栏按钮已按发布版刷新：本地存过的旧入口（编辑 / 页面设置）不再显示');
+  return cfg;
+}
+
+function mergePublished(cfg){
+  if(!PUBLISHED.length) return cfg;
+  const pub = {};
+  for(const src of PUBLISHED) if(src && src.id) pub[src.id] = src;
+  const out = [], done = {};
+  // 先按访客当前的顺序走一遍（拖拽排序要保留），内容按 rev 规则取发布版
+  for(const s of cfg.schemes){
+    if(!s || !s.id) continue;
+    if(pub[s.id]){
+      const src = pub[s.id], sc = JSON.parse(JSON.stringify(src));
+      sc.builtin = true;
+      done[s.id] = 1;
+      if(s.rev && s.rev === sc.rev){ s.builtin = true; out.push(s); }   // 同版本：保留本地微调
+      else{
+        out.push(sc);                                                   // 新出现 / 作者更新过
+        if(s.rev) warn('示例导图「' + (sc.name || sc.id) + '」已随页面更新，本地改动被覆盖');
+      }
+    }else{
+      s.builtin = false;
+      out.push(s);
+    }
+  }
+  // 发布基线里有、本地还没有的固化方案 -> 插到最前面
+  const news = [];
+  for(const src of PUBLISHED){
+    if(!src || !src.id || done[src.id]) continue;
+    const sc = JSON.parse(JSON.stringify(src));
+    sc.builtin = true;
+    news.push(sc);
+  }
+  cfg.schemes = news.concat(out);
+  if(!cfg.schemes.some(s => s.id === cfg.activeScheme)) cfg.activeScheme = cfg.schemes[0].id;
+  return cfg;
+}
+function localSchemes(cfg){ return (cfg || CFG).schemes.filter(s => !s.builtin); }
+/* 拖拽排序 / 导入方案时重新编号，保证 id 唯一 */
+function uniqueSchemeId(base){
+  const taken = {};
+  for(const s of CFG.schemes) taken[s.id] = 1;
+  if(!taken[base]) return base;
+  for(let i = 1; ; i++) if(!taken[base + '_' + i]) return base + '_' + i;
+}
+function moveScheme(from, to){
+  if(from === to || from < 0 || to < 0 || from >= CFG.schemes.length) return false;
+  const arr = CFG.schemes;
+  const sc = arr.splice(from, 1)[0];
+  arr.splice(to > from ? to - 1 : to, 0, sc);
+  saveLocal();
+  return true;
+}
+
+// 按 SCHEMA 逐字段校验：类型不对或越界 -> 写回默认值并记告警
+function applySchema(cfg){
+  for(const p in SCHEMA){
+    const s = SCHEMA[p], v = getPath(cfg, p);
+    if(typeof v === 'number' && isFinite(v) && v >= s.min && v <= s.max) continue;
+    if(v === undefined){ continue; }   // 缺失由 deepMerge 兜底，不算告警
+    setPath(cfg, p, s.def);
+    warn(p + ' = ' + JSON.stringify(v) + ' 不合法（应为 ' + s.min + '~' + s.max + ' 的数字），已用默认值 ' + s.def);
+  }
+  for(const p in ENUM){
+    const v = getPath(cfg, p);
+    if(v === undefined) continue;
+    if(ENUM[p].indexOf(v) < 0){
+      const d = ENUM[p][0];
+      setPath(cfg, p, d);
+      warn(p + ' = ' + JSON.stringify(v) + ' 不是合法取值（' + ENUM[p].join(' / ') + '），已用 ' + d);
+    }
+  }
+  // minWidth 不得大于 maxWidth
+  const mn = getPath(cfg,'style.node.minWidth'), mx = getPath(cfg,'style.node.maxWidth');
+  if(typeof mn === 'number' && typeof mx === 'number' && mn > mx){
+    setPath(cfg,'style.node.maxWidth', mn + 100);
+    warn('style.node.minWidth(' + mn + ') 大于 maxWidth(' + mx + ')，已把 maxWidth 调为 ' + (mn+100));
+  }
+}
+
+// 决策图校验：结构、悬空引用、环、字段类型
+function validateGraph(cfg){
+  if(!Array.isArray(cfg.schemes) || !cfg.schemes.length){
+    cfg.schemes = [{id:'default', name:'默认方案', start:null, floating:[], nodes:{}}];
+    warn('schemes 为空或不是数组，已创建空白方案');
+  }
+  const ids = cfg.schemes.map(s=> s && s.id);
+  if(ids.indexOf(cfg.activeScheme) < 0){
+    cfg.activeScheme = cfg.schemes[0].id;
+    warn('activeScheme 指向不存在的方案，已切到 ' + cfg.activeScheme);
+  }
+  for(const sc of cfg.schemes){
+    sc.builtin = sc.builtin === true;        // 固化 / 本地二选一，驱动标签栏徽标与丢失提醒
+    normSheet(sc);                           // 式神御魂配置表（每方案一张，先规范化再处理节点）
+    if(!isObj(sc.nodes) || !Object.keys(sc.nodes).length){
+      sc.nodes = {}; const rid = sc.id + '_root';
+      sc.nodes[rid] = {id:rid, title:sc.name || '未命名方案', camp:'root', hand:null, shishen:[], yuhun:[], note:'', children:[]};
+      sc.start = rid; if(!Array.isArray(sc.floating)) sc.floating = [];
+      warn('方案「' + (sc.name||sc.id) + '」没有节点，已生成起始节点');
+      continue;
+    }
+    for(const id in sc.nodes){
+      const n = sc.nodes[id];
+      if(!isObj(n)){ delete sc.nodes[id]; warn('方案「'+sc.name+'」节点 ' + id + ' 不是对象，已移除'); continue; }
+      if(n.id !== id) n.id = id;
+      if(typeof n.title !== 'string' || !n.title){ n.title = id; warn('节点 ' + id + ' 缺 title，已用 id 兜底'); }
+      if(['enemy','mine','neutral','root','free'].indexOf(n.camp) < 0){
+        n.camp = 'neutral'; warn('节点 ' + id + ' 的 camp 不合法，已按 neutral 渲染');
+      }
+      if(!Array.isArray(n.shishen)){ if(n.shishen) warn('节点 '+id+' 的 shishen 不是数组，已置空'); n.shishen = []; }
+      if(!Array.isArray(n.yuhun)){ if(n.yuhun) warn('节点 '+id+' 的 yuhun 不是数组，已置空'); n.yuhun = []; }
+      if(typeof n.note !== 'string') n.note = '';
+      // 手拖偏移量：必须是有限数字，写坏了（字符串 / NaN / Infinity）就丢掉当没拖过，
+      // 绝不能让它进到布局里变成 NaN —— 整个画布会歪掉
+      for(const k of ['dx','dy']){
+        if(n[k] === undefined) continue;
+        if(!(typeof n[k] === 'number' && isFinite(n[k]))){
+          warn('节点 ' + id + ' 的 ' + k + ' 不是数字（' + JSON.stringify(n[k]) + '），已忽略');
+          delete n[k];
+        }else if(Math.abs(n[k]) > 20000){
+          warn('节点 ' + id + ' 的 ' + k + ' 偏移量过大（' + n[k] + '），已忽略');
+          delete n[k];
+        }else if(n[k] === 0){ delete n[k]; }        // 0 等于没拖过，不留冗余字段
+      }
+      if(n.hand !== null && typeof n.hand !== 'number') n.hand = null;
+      if(!Array.isArray(n.children)){ if(n.children) warn('节点 '+id+' 的 children 不是数组，已置空'); n.children = []; }
+      const before = n.children.length;
+      n.children = n.children.filter(c=> sc.nodes[c] !== undefined);
+      if(n.children.length !== before) warn('节点 ' + id + ' 有 ' + (before-n.children.length) + ' 个子节点指向不存在的 id，已丢弃');
+    }
+    if(!sc.nodes[sc.start]){
+      const first = Object.keys(sc.nodes)[0];
+      warn('方案「'+sc.name+'」的 start 不存在，已改为第一个节点 ' + first);
+      sc.start = first;
+    }
+    if(!Array.isArray(sc.floating)) sc.floating = [];
+    sc.floating = sc.floating.filter(x=> sc.nodes[x] !== undefined);
+    // 环检测：沿当前路径 DFS，回头边直接断开
+    (function dfs(id, path){
+      const n = sc.nodes[id]; if(!n) return;
+      if(path[id]){ return true; }
+      path[id] = 1;
+      const keep = [];
+      for(const c of n.children){
+        if(path[c]){ warn('检测到环：' + id + ' -> ' + c + '，已断开该边'); continue; }
+        if(dfs(c, path)) { warn('检测到环：' + id + ' -> ' + c + '，已断开该边'); continue; }
+        keep.push(c);
+      }
+      n.children = keep;
+      delete path[id];
+      return false;
+    })(sc.start, {});
+  }
+}
+
+function validate(raw){
+  WARN = [];
+  // 深合并，缺失字段自动继承默认值。
+  // 注意必须整份深拷贝：deepMerge 顶层是浅拷贝，raw 里没提到的字段会直接共用 EMBED 的对象引用，
+  // 之后任何一次「往 cfg.layout / cfg.style 上写值」都会把 EMBED 那份也改掉，
+  // 于是下一次 validate 拿到的「默认值」已经是被人改过的了（踩到过：汇合模式被悄悄改回 collapse）。
+  const cfg = JSON.parse(JSON.stringify(deepMerge(EMBED, raw)));
+  // 深拷贝图数据，避免校验过程（丢弃悬空边、断环）污染调用方传入的对象
+  if(Array.isArray(cfg.schemes)) cfg.schemes = JSON.parse(JSON.stringify(cfg.schemes));
+  else cfg.schemes = [];
+  mergePublished(cfg);                      // 固化方案以发布版为准，本地方案原样保留
+  syncLayoutRev(cfg, raw);                  // 视图设置是「显示方式」，本地那份旧了就整体升级
+  syncUiButtons(cfg, raw);                  // 顶栏按钮同理：旧页面存过的「编辑 / 配置」不能把新版压回去
+  applySchema(cfg);
+  validateGraph(cfg);
+  if(!isObj(cfg.assets)) cfg.assets = {avatarIndex:{}, placeholders:{}};
+  if(!isObj(cfg.assets.avatarIndex)) cfg.assets.avatarIndex = {};
+  if(!isObj(cfg.assets.placeholders)) cfg.assets.placeholders = {};
+  if(!isObj(cfg.aliases)) cfg.aliases = {};
+  if(!Array.isArray(cfg.yuhun)) cfg.yuhun = [];
+  if(!Array.isArray(cfg.ui.buttons)) cfg.ui.buttons = [];
+  if(!isObj(cfg.ui.interaction)) cfg.ui.interaction = {};
+  if(!Array.isArray(cfg.schemes) || !cfg.schemes.length) validateGraph(cfg);
+  return cfg;
+}
+
+function loadLocal(){
+  try{ const s = localStorage.getItem(LS_KEY); return s ? JSON.parse(s) : null; }
+  catch(e){ warn('读取本地配置失败：' + e.message); return null; }
+}
+function saveLocal(){
+  if(READONLY) return false;                      // 只读导出版不往浏览器里写任何东西
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(CFG)); return true; }
+  catch(e){ warn('保存到本地失败：' + e.message); return false; }
+}
+function clearLocal(){ try{ localStorage.removeItem(LS_KEY); }catch(e){} }
+// 同步读取同目录下的 config.json；file:// 或不存在时返回 null，由内嵌默认值兜底
+function fetchExt(){
+  try{
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', URL_CFG, false);
+    xhr.send();
+    if(xhr.status === 200 || xhr.status === 0) return JSON.parse(xhr.responseText);
+  }catch(e){ /* 外部配置不可用，交给内嵌默认值 */ }
+  return null;
+}
+
+/* ---------------- 2. 图层 ---------------- */
+function scheme(){
+  for(const s of CFG.schemes) if(s.id === CFG.activeScheme) return s;
+  return CFG.schemes[0];
+}
+/* --- 式神御魂配置表：每个方案一张，列名可自定义，序号自动编号不存数据 --- */
+const SHEET_HEADERS = ['式神','指标','御魂套装','246号位','其他要求'];
+let SHEET_OPEN = false;          // 配置表默认不占地方：只有点「式神配置」才浮出来
+let SHEET_BTN  = null;           // 方案栏那个「式神配置」按钮（带行数徽标）
+function normSheet(sc){
+  const sh = sc.sheet;
+  if(!isObj(sh) || !Array.isArray(sh.headers) || !sh.headers.length){
+    sc.sheet = { headers: SHEET_HEADERS.slice(), rows: [] };
+    return;
+  }
+  sh.headers = sh.headers.map(h => String(h == null ? '' : h));
+  if(!Array.isArray(sh.rows)) sh.rows = [];
+  sh.rows = sh.rows
+    .filter(r => Array.isArray(r))
+    .map(r => { const a = r.map(v => String(v == null ? '' : v)); a.length = sh.headers.length; return a; });
+}
+function inDegree(sc){
+  const d = {};
+  for(const id in sc.nodes) for(const c of sc.nodes[id].children) d[c] = (d[c]||0)+1;
+  return d;
+}
+let INST_SEQ = 0;
+let MERGE_EDGES = [], FIRST_INST = {};     // merge 模式：记下「多出来的父节点」和每个节点的首个实例
+function buildInst(sc, nodeId, deg, seen, path, depth, parentInst){
+  if(!sc.nodes[nodeId]) return null;
+  if(path[nodeId]) return null;                       // 环（validate 已断开，双保险）
+  path[nodeId] = 1;
+  seen[nodeId] = (seen[nodeId]||0) + 1;
+  const n = sc.nodes[nodeId];
+  const d = deg[nodeId] || 0;
+  const isRef = d > 1 && seen[nodeId] > 1;
+  // merge 模式：共享节点全图只画一个框，多出来的父节点改记一条汇合边（布局时补虚线箭头）
+  if(isRef && CFG.layout.sharedNodeMode === 'merge'){
+    if(parentInst) MERGE_EDGES.push({ from: parentInst, nid: nodeId });
+    delete path[nodeId];
+    return null;
+  }
+  const inst = {
+    uid: 'i' + (++INST_SEQ), nid: nodeId, node: n, d: depth,
+    deg: d, isShared: d > 1,
+    collapsed: false, isRef, w:0, h:0, x:0, y:0, _y:0, el:null, children:[]
+  };
+  if(!FIRST_INST[nodeId]) FIRST_INST[nodeId] = inst;
+  if(inst.isRef && CFG.layout.sharedNodeMode === 'collapse') inst.collapsed = true;
+  for(const cid of n.children){
+    const c = buildInst(sc, cid, deg, seen, path, depth+1, inst);
+    if(c) inst.children.push(c);
+  }
+  delete path[nodeId];
+  return inst;
+}
+function buildRoots(){
+  const sc = scheme(), deg = inDegree(sc), seen = {};
+  MERGE_EDGES = []; FIRST_INST = {};
+  const roots = [];
+  const main = buildInst(sc, sc.start, deg, seen, {}, 0, null);
+  if(main) roots.push(main);
+  for(const fid of sc.floating){
+    const f = buildInst(sc, fid, deg, seen, {}, 0, null);
+    if(f) roots.push(f);
+  }
+  return roots;
+}
+/* 汇合要补的虚线箭头：两端都得是「当前看得见」的实例（折叠起来的子树里就不画） */
+function mergeEdges(){
+  const out = [];
+  for(const e of MERGE_EDGES){
+    const a = e.from, b = FIRST_INST[e.nid];
+    if(!a || !b || a === b) continue;
+    if(!a.el || !b.el) continue;
+    if(a.el.style.display === 'none' || b.el.style.display === 'none') continue;
+    out.push([a, b]);
+  }
+  return out;
+}
+
+/* ---------------- 3. 布局 ---------------- */
+const stage = document.getElementById('stage');
+const world = document.getElementById('world');
+let   svg   = document.getElementById('wires');   // rebuild() 会重建 world 内容并重新取用
+let   svgTop = document.getElementById('wiresTop'); // 汇合虚线单独一层，压在节点之上
+let ROOTS = [], BB = null;
+
+function layout(){
+  const L = CFG.layout;
+  const padX = L.padX, padTop = L.padTop;
+
+  function hideDeep(x){ x.el.style.display='none'; for(const c of x.children) hideDeep(c); }
+  for(const r of ROOTS) (function vis(n){
+    n.el.style.display='';
+    if(n.collapsed){ for(const c of n.children) hideDeep(c); }
+    else for(const c of n.children) vis(c);
+  })(r);
+  for(const r of ROOTS) (function m(n){
+    n.w = n.el.offsetWidth; n.h = n.el.offsetHeight;
+    if(!n.collapsed) for(const c of n.children) m(c);
+  })(r);
+
+  const groups = [];
+  for(const r of ROOTS){
+    const colW = [];
+    (function cw(n){
+      const d = CFG.layout.columnMode === 'hand' ? (n.node.hand || n.d) : n.d;
+      colW[d] = Math.max(colW[d]||0, n.w);
+      if(!n.collapsed) for(const c of n.children) cw(c);
+    })(r);
+    const colX = []; let acc = 0;
+    for(let d=0; d<colW.length; d++){
+      if(colW[d] === undefined) colW[d] = 0;
+      colX[d] = acc; acc += colW[d] + L.hGap;
+    }
+    let cursor = 0;
+    (function place(n){
+      const d = CFG.layout.columnMode === 'hand' ? (n.node.hand || n.d) : n.d;
+      const top = (n.d === 1);
+      const pad = L.vGap + (top ? L.branchGap : 0);
+      if(n.collapsed || !n.children.length){
+        n._y = cursor; cursor += n.h + pad;
+      }else{
+        const before = cursor;
+        n.children.forEach((c,i)=>{ if(top && i>0) cursor += L.branchGap; place(c); });
+        const f = n.children[0], l = n.children[n.children.length-1];
+        let y = ((f._y + f.h/2) + (l._y + l.h/2))/2 - n.h/2;
+        if(y < before) y = before;
+        n._y = y;
+        cursor = Math.max(cursor, y + n.h + pad);
+      }
+      n._d = d;
+    })(r);
+    groups.push({root:r, colX,
+      w: colX.reduce((m,x,d)=> Math.max(m, x + (colW[d]||0)), 0),
+      h: Math.max(cursor - L.vGap, r.h)});
+  }
+
+  const main = groups[0], floats = groups.slice(1);
+  let fx = padX, floatH = 0;
+  for(const g of floats){ g.x0 = fx; g.y0 = padTop; fx += g.w + L.groupGap; floatH = Math.max(floatH, g.h); }
+  main.x0 = padX;
+  main.y0 = floats.length ? padTop + floatH + L.groupGap : padTop;
+
+  let bbW = 0, bbH = 0;
+  for(const g of groups) (function put(n){
+    const off = nodeOffset(n.node);               // 手拖过的偏移量：人工调整优先于自动排位
+    n.x = g.x0 + (g.colX[n._d]||0) + off.x;
+    n.y = g.y0 + n._y + off.y;
+    n.el.style.left = n.x + 'px'; n.el.style.top = n.y + 'px';
+    bbW = Math.max(bbW, n.x + n.w); bbH = Math.max(bbH, n.y + n.h);
+    let b = n.el.querySelector('.badge');
+    if(n.children.length && n.collapsed){
+      const cnt = countAll(n);
+      if(!b){ b = document.createElement('span'); b.className='badge'; n.el.appendChild(b); }
+      b.textContent = cnt;
+    }else if(b){ b.remove(); }
+    if(!n.collapsed) for(const c of n.children) put(c);
+  })(g.root);
+
+  world.querySelectorAll('.zone').forEach(e=>e.remove());
+  if(L.zoneEnabled) for(const g of groups){
+    const z = document.createElement('div');
+    z.className='zone';
+    z.style.left=(g.x0-18)+'px'; z.style.top=(g.y0-22)+'px';
+    z.style.width=(g.w+36)+'px'; z.style.height=(g.h+44)+'px';
+    world.appendChild(z);
+  }
+
+  const W = bbW + L.canvasPad, H = bbH + L.canvasPad;
+  world.style.width=W+'px'; world.style.height=H+'px';
+  svg.setAttribute('width',W); svg.setAttribute('height',H);
+  // 连线：普通父子实线；汇合（同一节点被多处引用）用虚线箭头指回那唯一的框
+  let p = '<defs><marker id="mAh" viewBox="0 0 10 10" refX="8.5" refY="5" ' +
+          'markerWidth="5" markerHeight="5" orient="auto">' +
+          '<path d="M0,0.9 L9,5 L0,9.1 L2.3,5 Z" fill="context-stroke"/></marker></defs>';
+  const wireColor = b => (CFG.style.camp[b.node.camp] && CFG.style.camp[b.node.camp].line) || '#3679E7';
+  const seg = (a, b, dashed)=>{
+    const x1=a.x+a.w, y1=a.y+a.h/2, x2=b.x, y2=b.y+b.h/2;
+    const dx = Math.max(dashed ? 46 : 26, Math.abs(x2-x1)*0.5);
+    return '<path d="M'+x1+','+y1+' C'+(x1+dx)+','+y1+' '+(x2-dx)+','+y2+' '+x2+','+y2+'"' +
+      ' stroke="'+wireColor(b)+'" stroke-width="'+(dashed ? Math.max(1, L.lineWidth-0.4) : L.lineWidth)+'"' +
+      (dashed ? ' stroke-dasharray="7 5" marker-end="url(#mAh)"' : '') + '/>';
+  };
+  /* 汇合箭头专用的走线：被复用的框常常在别的深度、甚至在左边，
+     直接拉一条贝塞尔会从沿途一堆框身上压过去（看着像连错了框）。
+     这里改走折线：先出到「父框右侧两列之间的空档」竖着走，
+     再在目标框上方（或下方）横一段，最后垂直扎进目标框的边缘。
+     最后一段一定写成 L x,y 的成对坐标 —— PNG 导出要拿末尾两个数字算箭头朝向。 */
+  function mergePath(a, b){
+    const x1 = a.x + a.w, y1 = a.y + a.h/2;
+    const bx = b.x, by = b.y + b.h/2;
+    if(bx > x1 + 24){                                  // 目标就在右边：平滑曲线够短，不用绕
+      const dx = Math.max(46, Math.abs(bx - x1) * 0.5);
+      return 'M'+x1+','+y1+' C'+(x1+dx)+','+y1+' '+(bx-dx)+','+by+' '+bx+','+by;
+    }
+    const r  = Math.max(4, Math.min(12, (L.vGap || 13) / 2));
+    const xg = x1 + Math.max(14, (L.hGap || 54) / 2);   // 竖直通道：父框右侧的列间空档
+    const tx = bx + b.w / 2;                            // 从目标框上（或下）边缘中点扎进去
+    const below = by < y1;                              // 目标在上方 -> 从它的下边缘进
+    const laneY = below ? (b.y + b.h + r + 2) : (b.y - r - 2);
+    const endY  = below ? (b.y + b.h) : b.y;
+    const down  = laneY > y1;
+    const v1 = y1 + (down ? r : -r), v2 = laneY + (down ? -r : r);
+    const h1 = xg + (tx > xg ? r : -r), h2 = tx + (tx > xg ? -r : r);
+    return 'M'+x1+','+y1+
+           ' L'+(xg-r)+','+y1+
+           ' Q'+xg+','+y1+' '+xg+','+v1+
+           ' L'+xg+','+v2+
+           ' Q'+xg+','+laneY+' '+h1+','+laneY+
+           ' L'+h2+','+laneY+
+           ' Q'+tx+','+laneY+' '+tx+','+(laneY + (below ? -r : r))+
+           ' L'+tx+','+endY;
+  }
+  const mergeSeg = (a, b)=>{
+    const d = mergePath(a, b), col = wireColor(b);
+    const w = Math.max(1, L.lineWidth - 0.4);
+    // 底衬：同一条路径先描一遍粗的半透明线，虚线压在框上也还认得出走向
+    return '<path d="'+d+'" data-casing="1" stroke="'+col+'" stroke-opacity=".28" ' +
+             'stroke-width="'+(w + 3.2)+'"/>' +
+           '<path d="'+d+'" stroke="'+col+'" stroke-width="'+w+
+             '" stroke-dasharray="7 5" marker-end="url(#mAh)"/>';
+  };
+  for(const g of groups) (function wire(n){
+    if(n.collapsed) return;
+    for(const c of n.children){
+      p += seg(n, c, false);
+      wire(c);
+    }
+  })(g.root);
+  let pt = '';
+  for(const [a, b] of mergeEdges()) pt += mergeSeg(a, b);
+  svg.innerHTML = p;
+  svgTop.setAttribute('width',W); svgTop.setAttribute('height',H);
+  svgTop.innerHTML = pt;
+
+  BB = {w:W, h:H};
+  return BB;
+}
+function countAll(n){ let k=0; for(const c of n.children) k += 1 + countAll(c); return k; }
+
+/* ---------------- 4. 渲染 ---------------- */
+function applyVars(){
+  const S = CFG.style, th = S.theme[THEME] || S.theme.light;
+  const r = document.documentElement;
+  r.dataset.theme = THEME;                 // 供 :root[data-theme=dark] 选择器使用
+  r.style.setProperty('--page', th.page);
+  r.style.setProperty('--panel', th.panel);
+  r.style.setProperty('--text', th.text);
+  r.style.setProperty('--border', th.border);
+  r.style.setProperty('--line', th.line);
+  r.style.setProperty('--n-bg', th.neutralBg);
+  r.style.setProperty('--n-fg', th.neutralFg);
+  r.style.setProperty('--n-bd', th.neutralBorder);
+  for(const k of ['enemy','mine','root']){
+    const c = S.camp[k] || {};
+    if(c.bg) r.style.setProperty('--' + k[0] + '-bg', c.bg);
+    if(c.fg) r.style.setProperty('--' + k[0] + '-fg', c.fg);
+    if(c.border) r.style.setProperty('--' + k[0] + '-bd', c.border);
+  }
+  const fr = S.camp.free || {};
+  if(fr.border) r.style.setProperty('--f-bd', fr.border);
+  r.style.setProperty('--fs-node', S.font.node + 'px');
+  r.style.setProperty('--fs-branch', S.font.branch + 'px');
+  r.style.setProperty('--fs-root', S.font.root + 'px');
+  r.style.setProperty('--fs-chip', S.font.chip + 'px');
+  r.style.setProperty('--fs-badge', S.font.badge + 'px');
+  r.style.setProperty('--lh', S.lineHeight);
+  r.style.setProperty('--av-size', S.avatar.size + 'px');
+  r.style.setProperty('--av-gap', S.avatar.gap + 'px');
+  r.style.setProperty('--av-radius', S.avatar.radius + 'px');
+  r.style.setProperty('--av-mb', S.avatar.marginBottom + 'px');
+  r.style.setProperty('--nw-min', S.node.minWidth + 'px');
+  r.style.setProperty('--nw-max', S.node.maxWidth + 'px');
+  r.style.setProperty('--n-padx', S.node.padX + 'px');
+  r.style.setProperty('--n-padt', S.node.padTop + 'px');
+  r.style.setProperty('--n-padb', S.node.padBottom + 'px');
+  r.style.setProperty('--n-radius', S.node.radius + 'px');
+  r.style.setProperty('--chip-bg', S.chipBg);
+  r.style.setProperty('--badge-bg', S.badgeBg);
+  r.style.setProperty('--badge-fg', S.badgeFg);
+  r.style.setProperty('--zone-bg', S.zoneBg);
+  r.style.setProperty('--zone-border', S.zoneBorder);
+  r.style.setProperty('--zone-radius', S.zoneRadius + 'px');
+  document.body.style.background = th.page;
+}
+
+/* 头像地址：优先用 __AV_INLINE__ 里内嵌的（自包含预览版），否则走配置里的相对路径 */
+function avSrc(name){
+  const inl = window.__AV_INLINE__;
+  const v = inl && inl[name];
+  return v || CFG.assets.avatarIndex[name] || '';
+}
+/* 同一条路径的几种写法，加载失败时依次重试（绕开不同浏览器对中文路径编码的差异） */
+function avUrl(src, n){
+  if(/^(data|https?|blob):/.test(src)) return src;      // data URI 无需处理
+  if(n === 1) return src;                                // 中文原文，交给浏览器编码
+  if(n === 2) return encodeURI(src);                     // 手动按 UTF-8 编码
+  if(n === 3){ try{ return new URL(src, document.baseURI).href; }catch(e){} }
+  return src;                                            // n=0：默认走原文
+}
+function avatarBox(names){
+  const box = document.createElement('div');
+  box.className = 'avs';
+  for(const name of names){
+    const ph = CFG.assets.placeholders[name];
+    if(ph){
+      const d = document.createElement('div');
+      d.className='av-miss'; d.textContent = CFG.style.missing.mark || '?';
+      d.title = '头像缺失：' + ph;
+      box.appendChild(d);
+      continue;
+    }
+    const src = avSrc(name);
+    if(!src){
+      const d = document.createElement('div');
+      d.className='av-miss'; d.textContent = CFG.style.missing.mark || '?';
+      d.title = '头像缺失：' + name + '（配置 avatarIndex 中没有此项）';
+      box.appendChild(d);
+      continue;
+    }
+    const im = document.createElement('img');
+    im.className='av'; im.alt = name; im.title = name; im.loading='eager';
+    // 中文路径交给浏览器按文档编码自己处理，不再手动 encodeURI（file:// 下手动编码容易与实际取文件的方式对不上）
+    im.src = avUrl(src, 0);
+    let att = 0;
+    im.onerror = function(){
+      // 依次换写法重试：中文原文 -> 手动编码 -> 绝对地址；都失败才退化成占位框
+      if(att < 3){ att++; const u = avUrl(src, att); if(u && u !== im.src){ im.src = u; return; } }
+      const d = document.createElement('div');
+      d.className='av-miss'; d.textContent = CFG.style.missing.mark || '?';
+      d.title = '头像加载失败：' + src + '\n实际请求：' + (im.src || '');
+      im.replaceWith(d);
+    };
+    box.appendChild(im);
+  }
+  return box.children.length ? box : null;
+}
+
+function buildEl(n){
+  const el = document.createElement('div');
+  el.className = 'node' + (n.children.length ? ' clickable' : '');
+  el.dataset.camp = n.node.camp;
+  el.dataset.nid = n.nid;
+
+  if(n.isRef && n.collapsed){
+    el.classList.add('ref');
+    const t = document.createElement('div');
+    t.className='txt'; t.textContent = n.node.title;
+    el.appendChild(t);
+    const m = document.createElement('div');
+    m.className='refmark';
+    m.textContent = '↻ 复用：已展开于其他分支（点击展开此处副本）';
+    el.appendChild(m);
+  }else{
+    const av = avatarBox(n.node.shishen);
+    if(av) el.appendChild(av);
+    // 汇合点（被 2 处以上引用）图内文字截断，保持盒子紧凑；全文放悬停提示和编辑面板
+    const full = String(n.node.title == null ? '' : n.node.title);
+    const maxT = CFG.layout.sharedTitleMax | 0;
+    const cut = n.isShared && maxT > 0 && full.length > maxT;
+    const t = document.createElement('div');
+    t.className='txt'; t.textContent = cut ? full.slice(0, maxT) + '…' : full;
+    if(cut) t.title = '汇合点（图上截断显示，共 ' + full.length + ' 字）\n全文：' + full;
+    el.appendChild(t);
+    if(n.node.yuhun.length){
+      const y = document.createElement('div');
+      y.className='yh';
+      for(const v of n.node.yuhun){
+        const c = document.createElement('span');
+        c.className='chip'; c.textContent = v;
+        y.appendChild(c);
+      }
+      el.appendChild(y);
+    }
+    if(n.node.note){
+      const nt = document.createElement('div');
+      nt.className='refmark'; nt.textContent = n.node.note;
+      el.appendChild(nt);
+    }
+  }
+
+  // 汇合徽标：一眼看出这个框有几条路径汇进来（其余分支各有一条虚线箭头指过来）
+  if(n.isShared){
+    const mb = document.createElement('span');
+    mb.className = 'mgbadge'; mb.textContent = '⤵' + n.deg;
+    mb.title = '汇合点：' + n.deg + ' 条路径指向同一个节点，虚线箭头来自其他分支';
+    el.appendChild(mb);
+  }
+
+  // 悬停说明：把两个手势讲清楚，不然用户会拿单击去试编辑（原生 tooltip，不影响布局）
+  // 只读导出（单 HTML）里没有编辑入口，提示也要跟着改成只有「收起 / 展开」
+  el.title = READONLY
+    ? (n.children.length ? '单击：收起 / 展开子框' : '')
+    : (n.children.length
+        ? '单击：收起 / 展开子框 · 双击：编辑「' + n.node.title + '」'
+        : '双击：编辑「' + n.node.title + '」');
+
+  el.__inst = n;                                    // 右键菜单要能从这个 DOM 找回实例
+  // 拖框自由布局：按下先记起点，真的动了才算拖（阈值 + moved 标记，别把单击/双击吞掉）
+  el.addEventListener('mousedown', ev=>{
+    if(READONLY || ev.button !== 0) return;
+    if(!(CFG.ui.interaction && CFG.ui.interaction.nodeDrag)) return;
+    ev.stopPropagation();                           // 别让 stage 的画布平移跟着动
+    ND_MOVED = false;                               // 上一次拖动如果没被 click 消掉，在这里结清
+    ND = {inst: n, x0: ev.clientX, y0: ev.clientY,
+          d0: nodeOffset(n.node),                   // 按下那一刻的偏移量：后面所有位移都相对它算
+          moved: false};
+  });
+
+  // 单击 -> 折叠 / 展开子节点（延迟一下，避免和双击抢事件）；
+  // 双击 -> 打开编辑面板。stopPropagation 是为了不让点击冒到画布被当成「点空白收起面板」
+  let ct = null;
+  el.addEventListener('click', ev=>{
+    ev.stopPropagation();
+    if(ND_MOVED){ ND_MOVED = false; return; }       // 刚才是拖动，不是单击
+    if(!n.children.length) return;
+    if(READONLY){ n.collapsed = !n.collapsed; layout(); return; }   // 只读版没有双击编辑，单击直接生效
+    if(ct){ clearTimeout(ct); ct = null; return; }        // 这是双击的第一下，交给 dblclick
+    ct = setTimeout(()=>{ ct = null; n.collapsed = !n.collapsed; layout(); }, CFG.ui.clickFoldDelay);
+  });
+  el.addEventListener('dblclick', ev=>{
+    ev.preventDefault();
+    ev.stopPropagation();
+    if(READONLY) return;                                  // 只读版：双击什么都不做（编辑面板不存在）
+    if(ND_MOVED){ ND_MOVED = false; return; }             // 拖动结束会带出一次点击，别当成双击
+    if(ct){ clearTimeout(ct); ct = null; }                // 取消待执行的折叠
+    selectNode(n, el);
+  });
+  return el;
+}
+function mount(n){
+  n.el = buildEl(n);
+  world.appendChild(n.el);
+  for(const c of n.children){ c.parent = n; mount(c); }
+}
+
+/* ---------------- 5. UI ---------------- */
+let sc_ = 1, tx = 24, ty = 24, SEL = null;
+let DRAG = null;                     // 方案标签拖拽中的源下标
+
+function applyView(){ world.style.transform = 'translate('+tx+'px,'+ty+'px) scale('+sc_+')'; }
+function view(){
+  const L = CFG.layout, r = BB || {w:1200,h:800};
+  const W = stage.clientWidth, H = stage.clientHeight;
+  const whole = Math.min(W/(r.w+40), H/(r.h+40), 1);
+  if(whole >= L.fitThreshold){
+    sc_ = whole;
+    tx = Math.max(20,(W - r.w*sc_)/2); ty = Math.max(20,(H - r.h*sc_)/2);
+  }else{
+    sc_ = Math.max(Math.min(1, W/(r.w+40)), L.readableScale);
+    tx = 24; ty = 24;
+  }
+  applyView();
+}
+function zoomAt(mx,my,f){
+  const L = CFG.layout;
+  const ns = Math.max(L.minScale, Math.min(L.maxScale, sc_*f));
+  tx = mx-(mx-tx)*(ns/sc_); ty = my-(my-ty)*(ns/sc_); sc_ = ns; applyView();
+}
+/* 事件源位于侧栏面板或表单控件时，不当作导图操作：
+   #side 就在 #stage 内部，滚轮/按键会冒泡上来；侧栏有自己的滚动区与文本输入 */
+function inUI(ev){
+  const t = ev && ev.target;
+  if(!t || typeof t.closest !== 'function') return false;
+  if(t.closest('#side') || t.closest('#sheetBar')) return true;   // 配置表抽屉里的滚动 / 点击也别传给导图
+  const tag = String(t.tagName || '').toLowerCase();
+  return tag === 'input' || tag === 'textarea' || tag === 'select';
+}
+stage.addEventListener('wheel', ev=>{
+  if(!CFG.ui.interaction.wheelZoom) return;
+  if(inUI(ev)) return;                    // 让侧栏内部自己滚动（头像网格 / 配置文本域）
+  ev.preventDefault();
+  const r = stage.getBoundingClientRect();
+  zoomAt(ev.clientX-r.left, ev.clientY-r.top, ev.deltaY<0?1.12:1/1.12);
+},{passive:false});
+let dragging=false, sx=0, sy=0, moved=false;
+/* 拖单个节点框：不推翻自动布局，只给这个节点记一组偏移量（dx/dy），
+   布局算完再把偏移量叠上去 —— 新增子节点仍然自动落位，不用手摆每一个。
+   位移存进 nodes 里，导出 JSON / 单 HTML / PNG 自然都带着。 */
+let ND = null, ND_MOVED = false;
+const NUMXY = v => (typeof v === 'number' && isFinite(v)) ? v : 0;
+const NODE_DRAG_MAX = 4000;   // 手动位置的上限（px）：防手滑把框甩到画布外面找不回来
+const clampOff = v => Math.max(-NODE_DRAG_MAX, Math.min(NODE_DRAG_MAX, v));
+function nodeOffset(nd){ return {x: NUMXY(nd && nd.dx), y: NUMXY(nd && nd.dy)}; }
+stage.addEventListener('mousedown', ev=>{
+  if(inUI(ev)) return;
+  if(ev.button !== 0) return;      // 右键：交给 #world 的菜单入口；这里再关一次会把刚弹出的菜单吃掉
+  closeCtx();
+  if(!CFG.ui.interaction.dragPan) return;
+  dragging=true; moved=false; sx=ev.clientX; sy=ev.clientY; stage.classList.add('drag');
+});
+window.addEventListener('mousemove', ev=>{
+  if(!ND) return;
+  // ⚠ 位移必须相对「按下时的起点」算（ND.d0 是按下那一刻的 dx/dy），
+  //   绝不能拿当前已经写回去的 dx 再加一次 —— 那样每来一个 mousemove 就重复累加，
+  //   框会越拖越快、几帧就飞到画布外面去了（踩过）。
+  const dx = (ev.clientX - ND.x0) / sc_, dy = (ev.clientY - ND.y0) / sc_;
+  if(!ND.moved && Math.abs(dx) + Math.abs(dy) < NODE_DRAG_MIN) return;   // 手抖不算拖
+  ND.moved = true; ND_MOVED = true;
+  ND.inst.node.dx = Math.round(clampOff(ND.d0.x + dx));
+  ND.inst.node.dy = Math.round(clampOff(ND.d0.y + dy));
+  layout();                                    // 重排一次，连线和画布范围都跟着走
+});
+window.addEventListener('mouseup', ()=>{
+  if(!ND) return;
+  const did = ND.moved; ND = null;
+  if(did){ ND_MOVED = true; saveLocal(); }     // 标记留给紧随其后的 click，别让它去折叠/开面板
+});
+window.addEventListener('mousemove', ev=>{
+  if(!dragging) return;
+  const dx = ev.clientX-sx, dy = ev.clientY-sy;
+  if(Math.abs(dx)+Math.abs(dy) > 3) moved = true;      // 真的拖过了，松开时不当成「点空白」
+  tx += dx; ty += dy; sx=ev.clientX; sy=ev.clientY; applyView();
+});
+window.addEventListener('mouseup', ()=>{ dragging=false; stage.classList.remove('drag'); });
+/* 点画布空白处收起编辑面板（节点自身的 click 已 stopPropagation，不会被这里吃掉）
+   ⚠ 「这一下是不是点在 UI 里」必须在**捕获阶段**判定完，不能等冒泡到 window 再算：
+   面板里的头像格子 / 已选式神标签 / 引用来源 ✕ 都会在自己的 click 里重建 innerHTML
+   （grid.innerHTML='' / now.innerHTML='' / sideBody.innerHTML=…），等冒泡上来时被点中的
+   元素已脱离 #side，ev.target.closest('#side') 判不出来 → 面板被误关（点不了式神就是这个原因）。
+   捕获阶段跑在目标处理器之前，那一刻 closest 还是准的，先把结论存下来。 */
+function isUIEl(t){
+  if(!t || typeof t.closest !== 'function') return false;
+  if(t.closest('#side') || t.closest('#schemeBar') || t.closest('#expBox') || t.closest('.node')) return true;
+  if(t.closest('#sheetBar')) return true;         // 在配置表里点来点去不算「点空白」
+  if(t.closest('#ctxMenu')) return true;          // 右键菜单：点了菜单不该把面板收掉
+  return !!t.closest('button');                   // 面板按钮常被重建，脱离后靠这层兜底
+}
+let CLICK_IN_UI = false;
+window.addEventListener('click', ev=>{ CLICK_IN_UI = isUIEl(ev.target); }, true);
+window.addEventListener('click', ev=>{
+  closeCtx();                                           // 点了别处就把右键菜单收了
+  if(moved){ moved=false; return; }
+  if(CLICK_IN_UI) return;
+  if(inUI(ev)) return;                                  // 输入框等表单元素
+  if(SEL && SEL.el) SEL.el.classList.remove('sel');
+  SEL = null; closeSide();
+});
+window.addEventListener('keydown', ev=>{
+  if(!CFG.ui.interaction.keyboardPan) return;
+  if(inUI(ev)) return;                    // 编辑面板里打字时不要让方向键平移导图
+  const k = ev.key, st = 70;
+  if(k==='ArrowLeft'){ tx+=st; applyView(); ev.preventDefault(); }
+  if(k==='ArrowRight'){ tx-=st; applyView(); ev.preventDefault(); }
+  if(k==='ArrowUp'){ ty+=st; applyView(); ev.preventDefault(); }
+  if(k==='ArrowDown'){ ty-=st; applyView(); ev.preventDefault(); }
+  if(k==='+'||k==='='){ zoomAt(stage.clientWidth/2, stage.clientHeight/2, 1.15); ev.preventDefault(); }
+  if(k==='-'||k==='_'){ zoomAt(stage.clientWidth/2, stage.clientHeight/2, 1/1.15); ev.preventDefault(); }
+});
+
+const side = document.getElementById('side');
+const sideTitle = document.getElementById('sideTitle');
+const sideBody = document.getElementById('sideBody');
+const sideFoot = document.getElementById('sideFoot');
+function closeSide(){ side.classList.remove('open'); }
+
+/* 顶栏旧的两个入口「编辑」「配置」都已彻底移除（用户确认不需要）：
+   面板实现、动作表、编辑模式开关一并删掉，页面配置改由 config.json 维护后重新构建生效。 */
+function footBtn(label, fn){
+  const b = document.createElement('button');
+  b.textContent = label; b.onclick = fn;
+  sideFoot.appendChild(b);
+}
+function esc(s){ return String(s).replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+/* --- 节点编辑（改节点字段）--- */
+/* 面板标题以「节点 ID」为主（复用 / 引用都靠它认节点），后面跟一条浅色的描述做提示，点 ID 可复制 */
+function copyNodeId(id, el){
+  let ok = false;
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = id; ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    ok = !!(document.execCommand && document.execCommand('copy'));
+    ta.remove();
+  }catch(e){ ok = false; }
+  if(!ok){ try{ navigator.clipboard.writeText(id); ok = true; }catch(e){} }
+  el.classList.add('ok');
+  if(el._okT) clearTimeout(el._okT);
+  el._okT = setTimeout(()=>{ el.classList.remove('ok'); el._okT = null; }, 1200);
+  return ok;
+}
+function selectNode(n, el){
+  if(READONLY) return;                  // 只读导出（单 HTML）：没有编辑面板这个概念
+  if(SEL && SEL.el) SEL.el.classList.remove('sel');
+  SEL = n; el.classList.add('sel');
+  const sc = scheme(), node = sc.nodes[n.nid];
+  // 谁指向这个节点（一条路径一个父）—— 被多处引用时，删节点和「解除复用」必须分清楚
+  const inRefs = id => Object.keys(sc.nodes).filter(x=> sc.nodes[x].children.indexOf(id) >= 0);
+  const parents = inRefs(n.nid);
+  const refs = parents.length;
+  // 反向：本框「复用出去」的那些子节点（它们还挂在别的分支上）—— 汇合是从本框拉出去的虚线，
+  // 所以解除复用也应该能在本框这边直接做，不用跑到被复用的那个框上去找
+  const sharedOut = (node.children || []).filter(cid=> sc.nodes[cid] && inRefs(cid).length > 1);
+  sideTitle.innerHTML = '编辑节点：<span class="nid" title="点击复制节点 ID（导出 / 复用 / 引用都用它）">' +
+    esc(n.nid) + '</span>' +
+    (refs>1 ? '<span class="sub">（' + refs + ' 处引用同步）</span>' : '') +
+    '<span class="sub">' + esc(node.title) + '</span>';
+  const nidEl = sideTitle.querySelector('.nid');
+  if(nidEl) nidEl.onclick = ev=>{ ev.stopPropagation(); copyNodeId(n.nid, nidEl); };
+  sideBody.innerHTML =
+    // 引用来源只作说明，不给解除入口：解除统一在「源头那一处」（复用它的那个框）上做，
+    // 免得同一件事在两头都能点、点错一侧
+    (refs > 1
+      ? '<div class="fld"><label>被这些分支引用（' + refs + ' 处 · 要去掉某一处，请到那一处的框上解除）</label>' +
+        '<div id="ref_list"></div></div>'
+      : '') +
+    (sharedOut.length
+      ? '<div class="fld"><label>本框复用了（' + sharedOut.length + ' 处 · 点 ✕ 只断开本框到它的引用，那个节点本身保留）</label>' +
+        '<div id="outref_list"></div></div>'
+      : '') +
+    '<div class="fld"><label>描述</label><input id="f_title" value="'+esc(node.title)+'"></div>' +
+    '<div class="fld"><label>阵营</label><select id="f_camp">' +
+      ['root','mine','enemy','neutral','free'].map(c=>
+        '<option value="'+c+'"'+(node.camp===c?' selected':'')+'>'+
+        ({root:'中心主题',mine:'我方',enemy:'敌方',neutral:'中性/说明',free:'自由主题'}[c])+'</option>').join('') +
+    '</select></div>' +
+    '<div class="fld"><label>手数（可空，columnMode=hand 时按手数列）</label>' +
+      '<input id="f_hand" value="'+(node.hand===null?'':node.hand)+'"></div>' +
+    '<div class="fld"><label>已选式神（点标签可移除）</label><div id="ss_now"></div></div>' +
+    '<div class="fld"><label>搜索并点选式神</label>' +
+      '<input id="ss_q" placeholder="式神名或简称，如 阎魔 / 炎魔 / 禅吞"></div>' +
+    '<div id="ss_grid"></div>' +
+    '<div class="fld"><label>式神（文本，逗号分隔，支持简称）</label>' +
+      '<input id="f_ss" value="'+esc(node.shishen.join('、'))+'"></div>' +
+    '<div class="fld"><label>御魂 / 术语（逗号分隔）</label>' +
+      '<input id="f_yh" value="'+esc(node.yuhun.join('、'))+'"></div>' +
+    '<div class="fld"><label>备注</label><input id="f_note" value="'+esc(node.note)+'"></div>' +
+    '<div class="hint">改完点「应用」即时重绘。</div>' +
+    (sc.builtin
+      ? '<div class="hint">示例导图：改动会被配置更新覆盖，想保留请先「复制」。</div>'
+      : '<div class="hint">自建导图：仅存本机浏览器，建议「导出」备份。</div>');
+
+  let curSS = node.shishen.slice();
+  const fss = document.getElementById('f_ss'), q = document.getElementById('ss_q');
+  const now = document.getElementById('ss_now'), grid = document.getElementById('ss_grid');
+  grid.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;max-height:250px;overflow:auto';
+
+  // 引用来源：只读说明。解除动作统一放在源头那一处（复用它的框）上，
+  // 这里不给 ✕ —— 同一件事两头都能点，很容易点错一侧
+  const refList = document.getElementById('ref_list');
+  if(refList){
+    refList.innerHTML = '';                          // 面板每次重绘都重建这块，先清一遍（DOM 桩里也是同一个对象）
+    const cur = n.parent ? n.parent.nid : null;      // 当前这个框是挂在哪条路径下显示的
+    parents.forEach(pid=>{
+      const row = document.createElement('div');
+      row.className = 'refrow';
+      const a = document.createElement('span'); a.className = 'rid'; a.textContent = pid;
+      const b = document.createElement('span'); b.className = 'rtl';
+      b.textContent = (sc.nodes[pid] ? sc.nodes[pid].title : pid) + (pid === cur ? '（当前分支）' : '');
+      b.title = b.textContent + '\n要去掉这一处，请到「' + pid + '」这个框上解除';
+      row.appendChild(a); row.appendChild(b);
+      refList.appendChild(row);
+    });
+  }
+
+  // 反向的引用列表：本框复用出去的节点，每行 ✕ = 断开「本框 → 它」这一条（它本身留着）
+  const outList = document.getElementById('outref_list');
+  if(outList){
+    outList.innerHTML = '';
+    sharedOut.forEach(cid=>{
+      const row = document.createElement('div');
+      row.className = 'refrow';
+      const a = document.createElement('span'); a.className = 'rid'; a.textContent = cid;
+      const b = document.createElement('span'); b.className = 'rtl';
+      b.textContent = (sc.nodes[cid] ? sc.nodes[cid].title : cid) + '（共 ' + inRefs(cid).length + ' 处引用）';
+      b.title = b.textContent;
+      const x = document.createElement('span'); x.className = 'rx'; x.textContent = '✕';
+      x.title = '只解除「' + n.nid + ' → ' + cid + '」这一条引用，节点本身保留';
+      x.onclick = ()=>{
+        if(!confirm('解除这条复用？\n' + n.nid + '（' + node.title + '）→ ' + cid +
+                    '（' + (sc.nodes[cid] ? sc.nodes[cid].title : '') + '）' +
+                    '\n那个节点本身和其它引用都会保留。')) return;
+        node.children = node.children.filter(c => c !== cid);
+        saveLocal(); rebuild(true); reselect(n.nid);
+      };
+      row.appendChild(a); row.appendChild(b); row.appendChild(x);
+      outList.appendChild(row);
+    });
+  }
+
+  function drawNow(){
+    now.innerHTML = '';
+    if(!curSS.length){ now.innerHTML = '<div class="hint">未选择式神</div>'; return; }
+    now.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px';
+    for(const nm of curSS){
+      const c = document.createElement('span');
+      c.className = 'chip'; c.style.cursor = 'pointer';
+      c.textContent = nm + ' ×'; c.title = '点击移除';
+      c.onclick = ()=>{ curSS = curSS.filter(x=> x!==nm); fss.value = curSS.join('、'); drawNow(); drawGrid(); };
+      now.appendChild(c);
+    }
+  }
+  function drawGrid(){
+    const kw = (q.value || '').trim();
+    const idx = CFG.assets.avatarIndex;
+    const show = [];
+    // 简称反查：输入「炎魔」也能找到「阎魔」
+    if(kw) for(const a in CFG.aliases){
+      if(a.indexOf(kw) < 0) continue;
+      for(const nm of CFG.aliases[a]) if(show.indexOf(nm) < 0) show.push(nm);
+    }
+    for(const nm of Object.keys(idx).sort()){
+      if(kw && nm.indexOf(kw) < 0) continue;
+      if(show.indexOf(nm) < 0) show.push(nm);
+    }
+    const keepTop = grid.scrollTop;            // 重建会把滚动弹回顶部，先记下来再还原
+    grid.innerHTML = show.length ? '' : '<div class="hint">没有匹配的式神</div>';
+    for(const nm of show.slice(0, 80)){
+      const b = document.createElement('div');
+      b.style.cssText = 'width:58px;cursor:pointer;text-align:center';
+      const im = document.createElement('img');
+      im.src = avUrl(avSrc(nm), 0); im.title = nm; im.alt = nm;
+      im.onerror = function(){ im.style.visibility = 'hidden'; };   // 加载不到就留名字，不要破图
+      const on = curSS.indexOf(nm) >= 0;
+      im.style.cssText = 'width:40px;height:40px;border-radius:7px;display:block;margin:0 auto;' +
+        'border:2px solid ' + (on ? 'var(--line)' : 'transparent') + ';opacity:' + (on ? '1' : '.8');
+      const t = document.createElement('div');
+      t.style.cssText = 'font-size:10px;line-height:1.3;margin-top:2px;overflow:hidden;' +
+        'text-overflow:ellipsis;white-space:nowrap';
+      t.textContent = nm;
+      b.appendChild(im); b.appendChild(t);
+      b.onclick = ()=>{
+        const i = curSS.indexOf(nm);
+        if(i >= 0) curSS.splice(i, 1); else curSS.push(nm);
+        fss.value = curSS.join('、'); drawNow(); drawGrid();
+      };
+      grid.appendChild(b);
+    }
+    grid.scrollTop = keepTop;
+  }
+  q.oninput = drawGrid;
+  fss.oninput = ()=>{ curSS = expandNames(fss.value); drawNow(); drawGrid(); };
+  drawNow(); drawGrid();
+
+  sideFoot.innerHTML = '';
+  footBtn('应用', ()=>{
+    node.title = document.getElementById('f_title').value || n.nid;
+    const camp = document.getElementById('f_camp').value;
+    // 阵营取值异常时保留原值，避免写入非法 camp 影响配色与布局
+    node.camp = ['root','mine','enemy','neutral','free'].indexOf(camp) >= 0 ? camp : node.camp;
+    const hv = document.getElementById('f_hand').value.trim();
+    node.hand = hv === '' ? null : (parseInt(hv, 10) || null);
+    node.shishen = expandNames(fss.value);
+    node.yuhun = splitList(document.getElementById('f_yh').value);
+    node.note = document.getElementById('f_note').value;
+    saveLocal(); rebuild(true); reselect(node.id);      // 保留当前视角，别把画布搬走
+  });
+  footBtn('＋ 新增子卡', ()=>{
+    const id = newNodeId(sc);
+    sc.nodes[id] = {id, title:'新节点', camp: node.camp === 'enemy' ? 'mine' : 'enemy',
+                    hand: (node.hand || 0) + 1, shishen:[], yuhun:[], note:'', children:[]};
+    node.children.push(id);
+    saveLocal(); rebuild(true); reselect(id);
+  });
+  footBtn('＋ 复用已有', ()=> openPicker(node));
+  // 被多处引用时这里只给「删除整个节点」：解除某一条引用统一在源头那一处（复用它的框）上做
+  footBtn(refs > 1 ? '删除整个节点' : '删除节点', ()=>{
+    const head = '确定删除节点「' + node.title + '」？';
+    const more = refs > 1
+      ? '\n它被 ' + refs + ' 处引用（' + parents.join('、') + '），删除后这些引用会一并断开。' +
+        '\n只想去掉其中某一处，请到那个框（' + parents.join(' / ') + '）上点「本框复用了」里的 ✕。'
+      : '\n所有指向它的引用也会一并断开。';
+    if(!confirm(head + more)) return;
+    for(const id in sc.nodes) sc.nodes[id].children = sc.nodes[id].children.filter(c=> c!==n.nid);
+    delete sc.nodes[n.nid];
+    if(sc.start === n.nid) sc.start = Object.keys(sc.nodes)[0];
+    sc.floating = sc.floating.filter(x=> x!==n.nid);
+    SEL = null; saveLocal(); rebuild(true); closeSide();
+  });
+  footBtn('关闭', ()=>{ if(SEL&&SEL.el) SEL.el.classList.remove('sel'); SEL=null; closeSide(); });
+  side.classList.add('open');
+}
+/* ---------------- 节点右键菜单 ----------------
+   编辑 / 添加子节点 / 添加同级节点 / 复位位置 / 删除节点。
+   两个必须挡住的边界：根节点没有父级、被多处复用的节点有多个父级 ——
+   这两种「同级插到哪儿」都说不清，直接灰掉并写明原因，不猜。 */
+const ctxMenu = document.getElementById('ctxMenu');
+function closeCtx(){ if(ctxMenu){ ctxMenu.style.display = 'none'; ctxMenu.innerHTML = ''; } }
+function parentOf(sc, nid){
+  return Object.keys(sc.nodes).filter(id=> sc.nodes[id].children.indexOf(nid) >= 0);
+}
+function ctxItems(n){
+  const sc = scheme(), node = sc.nodes[n.nid];
+  if(!node) return [];
+  const pars = parentOf(sc, n.nid);
+  const moved = (typeof node.dx === 'number' && node.dx) || (typeof node.dy === 'number' && node.dy);
+  const it = [];
+  it.push({label:'编辑', run:()=>{ selectNode(n, n.el); }});
+  it.push({label:'添加子节点', run:()=>{
+    const id = newNodeId(sc);
+    sc.nodes[id] = {id, title:'新节点', camp: node.camp === 'enemy' ? 'mine' : 'enemy',
+                    hand:(node.hand||0)+1, shishen:[], yuhun:[], note:'', children:[]};
+    node.children.push(id);
+    saveLocal(); rebuild(true); reselect(id);
+  }});
+  it.push({
+    label:'添加同级节点',
+    disabled: pars.length !== 1,
+    tip: pars.length === 0
+      ? '根节点没有同级（它的位置是整张图的起点）'
+      : (pars.length > 1 ? '这个节点被 ' + pars.length + ' 处复用，同级插到哪一处不明确 —— 请先到源头那一处添加' : ''),
+    run:()=>{
+      const p = sc.nodes[pars[0]]; if(!p) return;
+      const id = newNodeId(sc);
+      sc.nodes[id] = {id, title:'新节点', camp: node.camp, hand: node.hand,
+                      shishen:[], yuhun:[], note:'', children:[]};
+      p.children.splice(p.children.indexOf(n.nid) + 1, 0, id);
+      saveLocal(); rebuild(true); reselect(id);
+    }
+  });
+  it.push({sep:true});
+  it.push({
+    label:'复位位置',
+    disabled: !moved,
+    tip: moved ? '把这个框放回自动排位的位置' : '这个框没有被拖动过',
+    run:()=>{ delete node.dx; delete node.dy; saveLocal(); rebuild(true); reselect(n.nid); }
+  });
+  it.push({
+    label: pars.length > 1 ? '删除整个节点' : '删除节点',
+    run:()=>{
+      const more = pars.length > 1
+        ? '\n它被 ' + pars.length + ' 处引用（' + pars.join('、') + '），删除后这些引用会一并断开。' +
+          '\n只想去掉其中某一处，请到那个框上点「本框复用了」里的 ✕。'
+        : '\n所有指向它的引用也会一并断开。';
+      if(!confirm('确定删除节点「' + node.title + '」？' + more)) return;
+      for(const id in sc.nodes) sc.nodes[id].children = sc.nodes[id].children.filter(c=> c!==n.nid);
+      delete sc.nodes[n.nid];
+      if(sc.start === n.nid) sc.start = Object.keys(sc.nodes)[0];
+      sc.floating = sc.floating.filter(x=> x!==n.nid);
+      SEL = null; saveLocal(); rebuild(true); closeSide();
+    }
+  });
+  return it;
+}
+function openCtx(n, ev){
+  if(READONLY) return;
+  const items = ctxItems(n);
+  if(!items.length) return;
+  if(ev && ev.preventDefault) ev.preventDefault();
+  closeCtx();
+  for(const it of items){
+    if(it.sep){ const s = document.createElement('div'); s.className = 'sp'; ctxMenu.appendChild(s); continue; }
+    const d = document.createElement('div');
+    d.className = 'mi' + (it.disabled ? ' off' : '');
+    d.textContent = it.label;
+    if(it.tip) d.title = it.tip;
+    if(!it.disabled) d.onclick = ev2=>{
+      ev2.stopPropagation();                       // 别冒到 window 被当成「点画布空白」
+      closeCtx(); it.run();
+    };
+    ctxMenu.appendChild(d);
+  }
+  // 定位：菜单是 position:fixed + 直接挂在 body 上，坐标系就是视口，不用再换算画布/缩放
+  ctxMenu.style.display = 'block';
+  ctxMenu.style.left = '0px'; ctxMenu.style.top = '0px';     // 先量尺寸，再摆到鼠标处
+  const w = ctxMenu.offsetWidth || 160, h = ctxMenu.offsetHeight || 160;
+  const mx = (ev && ev.clientX) || 0, my = (ev && ev.clientY) || 0;
+  let x = mx + 4, y = my + 4;
+  if(x + w > window.innerWidth - 8)  x = Math.max(8, mx - w - 8);
+  if(y + h > window.innerHeight - 8) y = Math.max(8, my - h - 8);
+  ctxMenu.style.left = x + 'px'; ctxMenu.style.top = y + 'px';
+}
+
+/* 打开菜单的入口：右键 mousedown 与 contextmenu 两条路都走它。
+   只靠 contextmenu 不够稳（部分环境/输入方式不派发，用户看到的就是「右键没反应」），
+   所以按下右键就先开；随后若浏览器再派一次 contextmenu，用时间戳吃掉，只留 preventDefault
+   ——原生菜单绝不能被放出来盖住我们这一层。 */
+let CTX_T = 0;
+function ctxElFrom(ev){
+  const t = ev.target;
+  if(!t || !t.closest) return null;
+  const el = t.closest('.node');
+  return (el && el.__inst) ? el : null;
+}
+function ctxTrigger(ev){
+  const el = ctxElFrom(ev);
+  if(!el) return false;                               // 画布空白处右键：留给浏览器原生菜单
+  if(ev.preventDefault) ev.preventDefault();
+  if(READONLY) return true;
+  if(Date.now() - CTX_T < 600) return true;           // 同一手势的第二发，只挡原生菜单
+  CTX_T = Date.now();
+  openCtx(el.__inst, ev);
+  return true;
+}
+world.addEventListener('mousedown', ev=>{ if(ev.button === 2) ctxTrigger(ev); });
+world.addEventListener('contextmenu', ctxTrigger);
+// 左键按在菜单外面任何地方都收起（节点的单击会 stopPropagation，冒不到 window，所以放在捕获阶段）
+document.addEventListener('mousedown', ev=>{
+  if(ev.button !== 0) return;
+  const t = ev.target;
+  if(t && t.closest && t.closest('#ctxMenu')) return;
+  closeCtx();
+}, true);
+
+function splitList(s){
+  return String(s||'').split(/[,，、;；\s]+/).map(x=>x.trim()).filter(Boolean);
+}
+// 简称 -> 正式式神名（用配置里的 aliases 表展开）
+// ⚠ 花括号不能省！写成 `if(...) for(...) if(...) push(...); else if(...) push(raw);`
+//   的话，else 会粘到 for 里面那个 if 上：不在 aliases 里的名字（头像库里 276 个式神有 253 个不在）
+//   会连 else 分支都进不去，被静默丢掉——表现就是「选了式神、点应用没反应」。
+function expandNames(s){
+  const out = [];
+  for(const raw of splitList(s)){
+    const hit = CFG.aliases[raw];
+    if(Array.isArray(hit)){
+      for(const n of hit) if(out.indexOf(n) < 0) out.push(n);
+    }else if(out.indexOf(raw) < 0){
+      out.push(raw);
+    }
+  }
+  return out;
+}
+
+/* --- 顶栏按钮（由配置生成）--- */
+const ACTIONS = {
+  view: ()=> view(),
+  foldTop: ()=>{
+    // 连同子孙一起收起（不能遇到 collapsed 就停）——这样之后再点开某个框只会露出一层，
+    // 可以按需一级级往下展开，而不是「一点开整棵子树全冒出来」
+    for(const r of ROOTS) (function f(n,d){
+      n.collapsed = d >= 1;
+      for(const c of n.children) f(c, d+1);
+    })(r,0);
+    layout(); view();
+  },
+  toggleTheme: (b)=>{
+    THEME = (THEME === 'dark') ? 'light' : 'dark';
+    b.textContent = THEME === 'dark' ? '浅色' : '暗色';
+    b.classList.toggle('on', THEME === 'dark');
+    applyVars();
+  },
+};
+function buildToolbar(){
+  const box = document.getElementById('tools');
+  box.innerHTML = '';
+  // 页面名与浏览器标签名都取配置里的 meta.title，改配置即可改标题
+  const ttl = CFG.meta.title || '导引图';
+  document.getElementById('ttl').textContent = ttl;
+  if(document.title !== undefined) document.title = ttl;
+  for(const spec of CFG.ui.buttons){
+    if(spec.show === false) continue;
+    const b = document.createElement('button');
+    b.textContent = spec.label;
+    if(spec.id === 'theme' && THEME === 'dark'){ b.textContent = '浅色'; b.classList.add('on'); }
+    b.onclick = ()=>{ const fn = ACTIONS[spec.action]; if(fn) fn(b); };
+    box.appendChild(b);
+  }
+}
+
+/* --- 方案标签栏：切换 / 重命名 / 拖动排序 / 导出 / 导入 / 新建 --- */
+function buildSchemeBar(){
+  const bar = document.getElementById('schemeBar');
+  bar.innerHTML = '';
+  CFG.schemes.forEach((sc, idx)=>{
+    const t = document.createElement('span');
+    t.className = 'tab' + (sc.id === CFG.activeScheme ? ' on' : '');
+    t.draggable = true;
+    t.dataset.idx = idx;
+    const nm = document.createElement('span');
+    nm.textContent = sc.name || sc.id;
+    nm.title = '拖动可排序 · 双击重命名';
+    t.appendChild(nm);
+    const tag = document.createElement('span');
+    tag.className = 'pin' + (sc.builtin ? '' : ' loc');
+    tag.textContent = sc.builtin ? '示例' : '自建';
+    tag.title = sc.builtin ? '示例导图，无法删除' : '自建导图，仅存本机浏览器';
+    t.appendChild(tag);
+    // 拖动排序
+    t.ondragstart = ev=>{
+      DRAG = idx;
+      t.classList.add('dragging');
+      if(ev.dataTransfer){ ev.dataTransfer.effectAllowed = 'move'; try{ ev.dataTransfer.setData('text/plain', sc.id); }catch(e){} }
+    };
+    t.ondragend = ()=>{ DRAG = null; clearDropMark(); t.classList.remove('dragging'); };
+    t.ondragover = ev=>{
+      if(DRAG === null || DRAG === idx) return;
+      ev.preventDefault();
+      if(ev.dataTransfer) ev.dataTransfer.dropEffect = 'move';
+      clearDropMark();
+      const r = t.getBoundingClientRect();
+      t.classList.add(ev.clientX < r.left + r.width/2 ? 'drop-l' : 'drop-r');
+    };
+    t.ondrop = ev=>{
+      ev.preventDefault();
+      const r = t.getBoundingClientRect();
+      const to = ev.clientX < r.left + r.width/2 ? idx : idx + 1;
+      const from = DRAG;
+      clearDropMark();
+      DRAG = null;
+      if(from === null) return;
+      if(moveScheme(from, to)) rebuild();
+    };
+    t.onclick = ()=>{
+      if(CFG.activeScheme === sc.id){ flashNote(); return; }   // 再点当前方案也闪一下提醒
+      CFG.activeScheme = sc.id; saveLocal(); rebuild(); flashNote();
+    };
+    t.ondblclick = (ev)=>{
+      ev.preventDefault();
+      const v = prompt('方案名称', sc.name || sc.id);
+      if(v && v.trim()){ sc.name = v.trim(); saveLocal(); buildSchemeBar(); }
+    };
+    if(!sc.builtin){                       // 示例导图不给删除
+      const x = document.createElement('span');
+      x.className = 'x'; x.textContent = '×'; x.title = '删除该方案';
+      x.onclick = (ev)=>{
+        ev.stopPropagation();
+        if(!confirm('删除方案「' + (sc.name || sc.id) + '」？不可撤销。')) return;
+        CFG.schemes = CFG.schemes.filter(s => s.id !== sc.id);
+        if(CFG.activeScheme === sc.id) CFG.activeScheme = CFG.schemes[0].id;
+        saveLocal(); rebuild();
+      };
+      t.appendChild(x);
+    }
+    bar.appendChild(t);
+  });
+
+  const right = document.createElement('span');
+  right.className = 'barR';
+  SHEET_BTN = barBtn('式神配置', '展开 / 收起当前方案的式神御魂配置表', toggleSheet);
+  right.appendChild(SHEET_BTN);
+  if(!READONLY){
+    right.appendChild(barBtn('＋ 新建', '新建空白方案', newScheme));
+    right.appendChild(barBtn('复制', '复制当前选中的方案', copyScheme));
+    right.appendChild(barBtn('导出', '导出当前方案：JSON / 单 HTML / PNG 图片', openExport));
+    right.appendChild(barBtn('导入', '从 JSON 文件导入方案', importScheme));
+  }
+  bar.appendChild(right);
+  // 提醒条不再常驻：只在切换 / 新建 / 复制 / 导入方案时由 flashNote() 闪一下
+}
+function barBtn(label, tip, fn){
+  const b = document.createElement('button');
+  b.className = 'bbtn'; b.textContent = label; b.title = tip; b.onclick = fn;
+  return b;
+}
+function clearDropMark(){
+  document.querySelectorAll('#schemeBar .tab').forEach(e=> e.classList.remove('drop-l','drop-r'));
+}
+
+/* 切换 / 新建方案时闪一下的提示：不常驻，几秒后自己消失 */
+let NOTE_T = null;
+const NOTE_MS = 4000;
+function flashNote(){
+  if(READONLY) return;                            // 只读导出里没有「本机方案」，不用闪这条提醒
+  const box = document.getElementById('schemeNote');
+  const loc = localSchemes();
+  if(NOTE_T){ clearTimeout(NOTE_T); NOTE_T = null; }
+  if(!loc.length){ box.classList.remove('on'); return; }
+  box.innerHTML = '';
+  const txt = document.createElement('div');
+  txt.innerHTML = '⚠ 自建导图「<b>' + esc(loc.map(s => s.name || s.id).join('、')) +
+    '</b>」仅存本机浏览器，清缓存即丢失，建议导出 JSON 备份。';
+  box.appendChild(txt);
+  box.classList.add('on');
+  NOTE_T = setTimeout(()=>{ box.classList.remove('on'); NOTE_T = null; }, NOTE_MS);
+}
+function newSchemeId(){
+  for(let i = 1; ; i++) if(!CFG.schemes.some(s => s.id === 'sc' + i)) return 'sc' + i;
+}
+function newScheme(){
+  const v = prompt('新方案名称', '新方案');
+  if(!v || !v.trim()) return;
+  const id = newSchemeId(), rid = id + '_root', nodes = {};
+  nodes[rid] = {id:rid, title:'我方1手', camp:'root', hand:1, shishen:[], yuhun:[], note:'', children:[]};
+  CFG.schemes.push({id, name:v.trim(), builtin:false, start:rid, floating:[], nodes,
+    sheet:{headers:SHEET_HEADERS.slice(), rows:[]}});
+  CFG.activeScheme = id;
+  saveLocal(); rebuild(); flashNote();
+}
+function copyScheme(){
+  // 节点 id 只在方案内生效，整份深拷贝即可，无需重命名
+  const src = scheme(), id = newSchemeId();
+  const cp = JSON.parse(JSON.stringify(src));
+  cp.id = id; cp.name = (src.name || src.id) + ' 副本';
+  cp.builtin = false; delete cp.rev;        // 副本属于本地方案
+  CFG.schemes.push(cp);
+  CFG.activeScheme = id;
+  saveLocal(); rebuild(); flashNote();
+}
+function newNodeId(sc){ let i = 1; while(sc.nodes['m' + i]) i++; return 'm' + i; }
+
+/* --- 方案导出 / 导入（与页面配置解耦，各管各的）--- */
+function slug(s){
+  return String(s || 'scheme').replace(/[\\/:*?"<>|]+/g, '_').replace(/\s+/g, '_').slice(0, 40) || 'scheme';
+}
+function downloadFile(name, blob){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(()=> URL.revokeObjectURL(a.href), 4000);
+}
+function download(name, text){
+  downloadFile(name, new Blob([text], {type: 'application/json;charset=utf-8'}));
+}
+/* 导出当前选中的方案：单个方案对象，可直接粘进 config.json 的 schemes 数组 */
+function schemeExportJson(){
+  const sc = scheme();
+  if(!sc) return null;
+  const out = JSON.parse(JSON.stringify(sc));
+  delete out.builtin;                           // 导入方自己决定是不是固化
+  return JSON.stringify(out, null, 1);
+}
+/* ---------------- 头像转成 data URL（导出产物要自带头像，不能依赖旁边的图片目录）---------------- */
+const AV_DATA = {};                             // 名字 -> data URL（同一张图只转一次）
+function avatarDataUrl(name){
+  const src = avSrc(name);
+  if(!src) return Promise.resolve('');
+  if(/^(data|blob):/.test(src)) return Promise.resolve(src);
+  if(AV_DATA[name] !== undefined) return Promise.resolve(AV_DATA[name]);
+  const url = avUrl(src, document.baseURI && document.baseURI.indexOf('file:') === 0 ? 3 : 0);
+  return new Promise(res=>{
+    let outed = false;
+    const finish = v=>{ if(outed) return; outed = true; AV_DATA[name] = v || ''; res(AV_DATA[name]); };
+    try{
+      if(typeof fetch !== 'function') return finish('');
+      fetch(url).then(r=> r.ok ? r.blob() : Promise.reject(new Error(String(r.status))))
+        .then(b=> new Promise((ok, no)=>{
+          const fr = new FileReader();
+          fr.onload = ()=> ok(fr.result); fr.onerror = no;
+          fr.readAsDataURL(b);
+        }))
+        .then(d=> finish(d))
+        .catch(()=> finish(''));               // file:// 下取不到就退化成占位框
+    }catch(e){ finish(''); }                    // 相对路径在非浏览器环境里 fetch 会直接抛，别把 await 带崩
+  });
+}
+/* 头像包：导出要取头像的二进制，而 file:// 下 fetch / XHR 都会被同源策略拦住，取不到就固化不进去。
+   脚本标签不受这个限制，所以构建时预置一份「头像名 -> dataURL」的 JS 包（assets/avatars-inline.js），
+   只在真要导出时才动态加载，平时不拖慢页面。取不到就退化到逐张 fetch（http 环境可用）。 */
+const AV_PACK_SRC = 'assets/avatars-inline.js';
+let AV_PACK_TRIED = false;
+function ensureAvatarPack(){
+  if(window.__AV_INLINE__ || AV_PACK_TRIED) return Promise.resolve(!!window.__AV_INLINE__);
+  AV_PACK_TRIED = true;
+  return new Promise(res=>{
+    const s = document.createElement('script');
+    s.src = AV_PACK_SRC;
+    s.onload = ()=> res(!!window.__AV_INLINE__);
+    s.onerror = ()=> res(false);              // 没有这份包（或部署时没带上它）就走 fetch 兜底
+    (document.head || document.documentElement).appendChild(s);
+  });
+}
+/* 方案里用到的所有式神：节点上的头像 + 配置表第一列 */
+function schemeAvatarNames(sc){
+  const set = [];
+  const add = nm=>{ if(nm && set.indexOf(nm) < 0) set.push(nm); };
+  for(const id in sc.nodes) for(const nm of (sc.nodes[id].shishen || [])) add(nm);
+  if(sc.sheet) for(const row of sc.sheet.rows) add(sheetAvatar(row[0]));
+  return set;
+}
+async function collectAvatarData(sc){
+  await ensureAvatarPack();                 // 先试预置包（file:// 下只有这条路走得通）
+  const out = {};
+  for(const nm of schemeAvatarNames(sc)){
+    const d = await avatarDataUrl(nm);
+    if(d) out[nm] = d;
+  }
+  return out;
+}
+/* ---------------- 导出 2：单 HTML（只读查看版）----------------
+   做法：拿页面自己的干净骨架（脚本开头抓的 SRC_HTML）当模板，
+   ① 换掉 cfg-embed 内嵌配置的内容 —— 只留「页面配置 + 这一个方案」；
+   ② 在 body 开头注入已转好的头像 data URL 和只读开关。
+   产物和当前页面共用同一套渲染 / 布局代码，所以折叠展开、式神配置表的表现完全一致。 */
+/* 导出用：拿「页面配置」这份（标题 / 布局 / 样式 / 别名 / 头像索引），不带方案。
+   ⚠ 页面上已经没有那个配置面板了（入口和实现都删了），这个函数只为导出单 HTML 服务。 */
+function pageConfigOf(cfg){
+  const out = JSON.parse(JSON.stringify(cfg));
+  delete out.schemes;
+  delete out.activeScheme;
+  return out;
+}
+function viewerConfig(sc){
+  const base = pageConfigOf(CFG);               // 页面配置（标题 / 布局 / 样式 / 别名 / 头像索引）
+  const one = JSON.parse(JSON.stringify(sc));
+  one.builtin = true;                           // 当成固化方案，免得导出页还闪「仅存本机」的提醒
+  base.schemes = [one];
+  base.activeScheme = one.id;
+  return base;
+}
+function buildViewerHtml(sc, inlineAv){
+  const cfgTxt = JSON.stringify(viewerConfig(sc)).replace(/<\//g, '<\\/');
+  const oldTxt = document.getElementById('cfg-embed').textContent;
+  let html = SRC_HTML;
+  // 用函数形式的替换串：配置里若含 $& / $1 之类，会被 replace 当成特殊记号替换坏
+  if(html.indexOf(oldTxt) >= 0) html = html.replace(oldTxt, ()=> cfgTxt);
+  else return null;                             // 骨架里找不到内嵌配置，放弃（不该发生）
+  const head = '<script>window.__AV_INLINE__=' + JSON.stringify(inlineAv).replace(/<\//g, '<\\/') +
+               ';window.__READONLY__=1;<\/script>';
+  const bi = html.indexOf('<body>');
+  html = bi < 0 ? head + html : html.slice(0, bi + 6) + '\n' + head + html.slice(bi + 6);
+  return '<!DOCTYPE html>\n' + html;
+}
+/* ---------------- 导出 3：PNG 图片（导图 + 下方拼接式神配置表）----------------
+   思路：不截图，直接用现成的布局数据重画。
+   · 连线直接复用 #wires 里已经算好的 path（Path2D 吃同一套 d 字符串）；
+   · 节点 / 文字 / 头像的位置与样式从活着的 DOM 元素上量（offset* / getComputedStyle），
+     所以就算改了主题、字号、头像大小，导出的图也跟着一样。 */
+function visibleInsts(){
+  const out = [];
+  const seen = {};
+  for(const r of ROOTS) (function w(n){
+    if(!n.el || n.el.style.display === 'none') return;
+    if(seen[n.uid]) return; seen[n.uid] = 1;
+    out.push(n);
+    for(const c of n.children) w(c);
+  })(r);
+  return out;
+}
+function cssFont(el){
+  const s = getComputedStyle(el);
+  return (s.fontStyle + ' ' + s.fontWeight + ' ' + s.fontSize + ' ' + s.fontFamily).trim();
+}
+/* 按 container 内可用宽度折行：CJK 逐字断，连续的英文 / 数字当一个词不断开 */
+function wrapText(ctx, text, maxW){
+  const src = String(text == null ? '' : text);
+  if(!src) return [];
+  const toks = src.match(/[A-Za-z0-9_.+\-%]+|\s+|[\s\S]/g) || [src];
+  const lines = []; let cur = '';
+  for(const tk of toks){
+    const probe = cur + tk;
+    if(cur && ctx.measureText(probe).width > maxW && !/^\s+$/.test(tk)){
+      lines.push(cur); cur = /^\s+$/.test(tk) ? '' : tk;
+    }else cur = probe;
+  }
+  if(cur !== '') lines.push(cur);
+  return lines.length ? lines : [''];
+}
+function rrect(ctx, x, y, w, h, r){
+  const k = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + k, y);
+  ctx.arcTo(x + w, y, x + w, y + h, k);
+  ctx.arcTo(x + w, y + h, x, y + h, k);
+  ctx.arcTo(x, y + h, x, y, k);
+  ctx.arcTo(x, y, x + w, y, k);
+  ctx.closePath();
+}
+/* 从活的 DOM 元素上量出一张结点的画法（相对自己左上角的偏移，全部是未缩放的布局像素） */
+function measureNode(inst){
+  const el = inst.el;
+  const info = {
+    x: inst.x, y: inst.y, w: el.offsetWidth, h: el.offsetHeight,
+    box: {bg: getComputedStyle(el).backgroundColor, bd: getComputedStyle(el).borderColor,
+          bw: parseFloat(getComputedStyle(el).borderTopWidth) || 1,
+          r: parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0},
+    padX: parseFloat(getComputedStyle(el).paddingLeft) || 0,
+    padT: parseFloat(getComputedStyle(el).paddingTop) || 0,
+    items: [], badge: null, mgbadge: null
+  };
+  for(const ch of el.children){
+    const cs = getComputedStyle(ch);
+    if(ch.classList.contains('badge') || ch.classList.contains('mgbadge')){
+      info[ch.classList.contains('badge') ? 'badge' : 'mgbadge'] = {
+        txt: ch.textContent, x: ch.offsetLeft, y: ch.offsetTop,
+        w: ch.offsetWidth, h: ch.offsetHeight, bg: cs.backgroundColor, fg: cs.color,
+        bd: cs.borderColor, fs: parseFloat(cs.fontSize) || 11
+      };
+      continue;
+    }
+    if(ch.classList.contains('txt')){
+      info.items.push({k: 'txt', x: ch.offsetLeft, y: ch.offsetTop, w: ch.offsetWidth,
+                       lines: null, text: ch.textContent, font: cssFont(ch),
+                       fg: cs.color, lh: parseFloat(cs.lineHeight) || parseFloat(cs.fontSize) * 1.4});
+      continue;
+    }
+    if(ch.classList.contains('avs')){
+      for(const im of ch.children){
+        if(im.tagName === 'IMG'){
+          info.items.push({k: 'av', x: im.offsetLeft, y: im.offsetTop,
+                           sw: im.offsetWidth, sh: im.offsetHeight, src: im.currentSrc || im.src,
+                           nm: im.alt});        // alt 就是式神名，优先走头像包取 dataURL（file:// 也能画出来）
+        }else{
+          info.items.push({k: 'miss', x: im.offsetLeft, y: im.offsetTop, sw: im.offsetWidth,
+                           sh: im.offsetHeight, txt: im.textContent, bd: cs.borderColor,
+                           bg: cs.backgroundColor, fg: cs.color,
+                           fs: Math.round((parseFloat(cs.fontSize) || 13))});
+        }
+      }
+      continue;
+    }
+    if(ch.classList.contains('yh')){
+      for(const c of ch.children){
+        const ls = getComputedStyle(c);
+        info.items.push({k: 'chip', x: c.offsetLeft, y: c.offsetTop, w: c.offsetWidth, h: c.offsetHeight,
+                         txt: c.textContent, bg: ls.backgroundColor, fg: ls.color, font: cssFont(c),
+                         r: parseFloat(ls.borderTopLeftRadius) || 10});
+      }
+      continue;
+    }
+    if(ch.classList.contains('refmark')){
+      info.items.push({k: 'note', x: ch.offsetLeft, y: ch.offsetTop, w: ch.offsetWidth,
+                       txt: ch.textContent, fg: cs.color, font: cssFont(ch), lh: parseFloat(cs.lineHeight)});
+    }
+  }
+  return info;
+}
+async function loadImg(src){
+  if(!src) return null;
+  if(/^data:/.test(src)){
+    return new Promise(res=>{ const im = new Image(); im.onload = ()=> res(im); im.onerror = ()=> res(null);
+      im.src = src; });
+  }
+  return await new Promise(res=>{
+    let outed = false;
+    const done = v=>{ if(outed) return; outed = true; res(v); };
+    try{
+      fetch(src)                                  // 先转 data URL，避免污染画布导致导出失败
+        .then(r=> r.ok ? r.blob() : Promise.reject(new Error('http ' + r.status)))
+        .then(b=> new Promise((ok, no)=>{ const fr = new FileReader();
+          fr.onload = ()=> ok(fr.result); fr.onerror = no; fr.readAsDataURL(b); }))
+        .then(d=>{ const im = new Image(); im.onload = ()=> done(im); im.onerror = ()=> done(null); im.src = d; })
+        .catch(()=> done(null));
+    }catch(e){ done(null); }
+  });
+}
+/* 先框出「图上有多大」，再决定画布尺寸：ROWS 之后拼式神配置表 */
+async function measureSheetTable(ctx, sc){
+  const rows = sc.sheet ? sc.sheet.rows : [];
+  if(!rows.length) return null;
+  const heads = ['序号'].concat(sc.sheet.headers);
+  const imgs = {};
+  const fonts = {};
+  const stage = document.getElementById('stage');
+  const cellStyle = {};
+  const tb = document.querySelector('#sheetBody table');
+  const refTh = tb && tb.querySelector('thead th:nth-child(2)');
+  const refTd = tb && tb.querySelector('tbody td:nth-child(2)');
+  if(refTh){ const s = getComputedStyle(refTh);
+    cellStyle.th = {font: cssFont(refTh), fg: s.color, bg: s.backgroundColor, bd: s.borderColor, pad: 8}; }
+  if(refTd){ const s = getComputedStyle(refTd);
+    cellStyle.td = {font: cssFont(refTd), fg: s.color, bg: s.backgroundColor, bd: s.borderColor, pad: 8}; }
+  const th0 = tb && tb.querySelector('thead th');
+  if(th0){ const s = getComputedStyle(th0); cellStyle.no = {font: cssFont(th0), fg: s.color, bg: s.backgroundColor}; }
+  const useTh = cellStyle.th || {font: '600 13px sans-serif', pad: 8};
+  const useTd = cellStyle.td || {font: '13px sans-serif', pad: 8};
+  const pad = 8, gap = 6;
+  const AV = 26;                                  // 与 CSS 里 table.sheet .av 对齐
+  const widths = heads.map((h, i)=>{
+    ctx.font = useTh.font;
+    return ctx.measureText(h).width + pad * 2;
+  });
+  for(const row of rows){
+    heads.forEach((_, i)=>{
+      if(i === 0) return;
+      const v = String(row[i - 1] == null ? '' : row[i - 1]);
+      ctx.font = useTd.font;
+      let w = ctx.measureText(v).width + pad * 2;
+      if(i === 1){ const nm = sheetAvatar(row[0]); if(nm){ w += AV + gap; if(!imgs[nm]) imgs[nm] = null; } }
+      ctx.font = useTh.font;
+      w = Math.max(w, ctx.measureText(heads[i]).width + pad * 2);
+      widths[i] = Math.max(widths[i], w);
+    });
+  }
+  widths[0] = Math.max(widths[0], 46);
+  for(const nm of Object.keys(imgs)) imgs[nm] = await loadImg(avUrl(avSrc(nm), 0));
+  return {heads, rows, widths, pad, gap, av: AV, imgs, style: cellStyle,
+          total: widths.reduce((a, b)=> a + b, 0), rowH: AV + pad * 2};
+}
+/* 导出 PNG：导图在上，式神配置表在下，一次性拼好 */
+async function renderSchemePng(sc){
+  await ensureAvatarPack();                     // 先把预置头像包备好，画图时才拿得到 dataURL
+  const insts = visibleInsts();
+  if(!insts.length) return {err: '画布上没有可导出的节点'};
+  let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+  const nodes = insts.map(measureNode);
+  for(const nd of nodes){
+    minX = Math.min(minX, nd.x); minY = Math.min(minY, nd.y);
+    maxX = Math.max(maxX, nd.x + nd.w); maxY = Math.max(maxY, nd.y + nd.h);
+  }
+  const PAD = 28;                                  // 徽标是负坐标伸出边框外的，四周留点余量
+  minX -= PAD; minY -= PAD; maxX += PAD; maxY += PAD;
+  const mapW = Math.ceil(maxX - minX), mapH = Math.ceil(maxY - minY);
+  const SCALE = 2;                                // 2 倍图，文字更清楚
+  const probe = document.createElement('canvas').getContext('2d');
+  const table = await measureSheetTable(probe, sc);
+  const tbW = table ? Math.max(table.total, 320) : 0;
+  const headH = table ? 46 : 0;
+  const tbBodyH = table ? table.rows.length * table.rowH + 28 : 0;   // +28：表底留白
+  const W = Math.max(mapW, tbW), H = mapH + headH + tbBodyH;
+  const cv = document.createElement('canvas');
+  cv.width = Math.round(W * SCALE); cv.height = Math.round(H * SCALE);
+  const ctx = cv.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+  const pageBg = getComputedStyle(document.documentElement).backgroundColor ||
+                 getComputedStyle(document.body).backgroundColor || '#ffffff';
+  ctx.fillStyle = pageBg; ctx.fillRect(0, 0, W, H);
+  const ox = -minX, oy = -minY;
+
+  /* 连线：直接复用页面算好的路径（Path2D 接受同样的 d 字符串）。
+     普通父子线画在节点底下（和页面一致），汇合虚线画在节点之上 —— 不然会被框盖住。 */
+  async function drawWires(svgEl){
+    if(!svgEl) return;
+    for(const p of svgEl.querySelectorAll('path')){
+      if(p.closest('defs')) continue;                 // defs 里是箭头 marker 的形状，不是连线
+      const d = p.getAttribute('d'); if(!d) continue;
+      const st = getComputedStyle(p);
+      ctx.save();
+      ctx.translate(ox, oy);
+      ctx.strokeStyle = p.getAttribute('stroke') || st.stroke;
+      ctx.lineWidth = parseFloat(p.getAttribute('stroke-width') || st.strokeWidth) || 1.4;
+      if(p.getAttribute('data-casing')) ctx.globalAlpha = 0.28;   // 虚线的底衬，页面上也是半透明
+      if(p.getAttribute('stroke-dasharray')) ctx.setLineDash([7, 5]);
+      ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.stroke(new Path2D(d));
+      if(p.getAttribute('stroke-dasharray')){                 // 汇合虚线补一个箭头（替代 SVG marker）
+        const ns = (d.match(/-?\d+(\.\d+)?/g) || []).map(Number);
+        if(ns.length >= 4){
+          const ex = ns[ns.length - 2], ey = ns[ns.length - 1];
+          const px = ns[ns.length - 4], py = ns[ns.length - 3];
+          const a = Math.atan2(ey - py, ex - px), L = 9;
+          ctx.setLineDash([]); ctx.globalAlpha = 1; ctx.fillStyle = ctx.strokeStyle;
+          ctx.beginPath();
+          ctx.moveTo(ex, ey);
+          ctx.lineTo(ex - L * Math.cos(a - 0.42), ey - L * Math.sin(a - 0.42));
+          ctx.lineTo(ex - L * Math.cos(a + 0.42), ey - L * Math.sin(a + 0.42));
+          ctx.closePath(); ctx.fill();
+        }
+      }
+      ctx.restore();
+    }
+  }
+  await drawWires(svg);
+
+  /* 节点 */
+  let avFail = 0;
+  for(const nd of nodes){
+    const bx = nd.x + ox, by = nd.y + oy;
+    ctx.save();
+    ctx.fillStyle = nd.box.bg; ctx.strokeStyle = nd.box.bd; ctx.lineWidth = nd.box.bw;
+    rrect(ctx, bx + nd.box.bw / 2, by + nd.box.bw / 2, nd.w - nd.box.bw, nd.h - nd.box.bw, nd.box.r);
+    ctx.fill(); ctx.stroke();
+    for(const it of nd.items){
+      if(it.k === 'av'){
+        const d = await avatarDataUrl(it.nm);            // 头像包 / fetch，拿到 dataURL 才不会污染画布
+        const im = await loadImg(d || it.src);
+        if(im) ctx.drawImage(im, bx + it.x, by + it.y, it.sw, it.sh);
+        else { avFail++; ctx.fillStyle = 'rgba(0,0,0,.08)'; ctx.fillRect(bx + it.x, by + it.y, it.sw, it.sh); }
+      }else if(it.k === 'miss'){
+        ctx.strokeStyle = it.bd; ctx.fillStyle = it.bg; ctx.lineWidth = 1;
+        rrect(ctx, bx + it.x, by + it.y, it.sw, it.sh, 6); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = it.fg; ctx.font = it.fs + 'px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(it.txt, bx + it.x + it.sw / 2, by + it.y + it.sh / 2);
+      }else if(it.k === 'txt'){
+        ctx.font = it.font; ctx.fillStyle = it.fg;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        const lines = wrapText(ctx, it.text, Math.max(it.w, 8));
+        lines.forEach((ln, li)=> ctx.fillText(ln, bx + it.x, by + it.y + li * it.lh));
+      }else if(it.k === 'chip'){
+        ctx.fillStyle = it.bg;
+        rrect(ctx, bx + it.x, by + it.y, it.w, it.h, it.r); ctx.fill();
+        ctx.fillStyle = it.fg; ctx.font = it.font;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(it.txt, bx + it.x + 8, by + it.y + it.h / 2 + 1);
+      }else if(it.k === 'note'){
+        ctx.fillStyle = it.fg; ctx.font = it.font;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        const lh = wrapText(ctx, it.txt, Math.max(it.w, 8));
+        const step = it.lh || 18;
+        lh.forEach((ln, li)=> ctx.fillText(ln, bx + it.x, by + it.y + li * step));
+      }
+    }
+    for(const key of ['badge', 'mgbadge']){
+      const b = nd[key]; if(!b) continue;
+      ctx.fillStyle = b.bg; ctx.strokeStyle = b.bd; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(bx + b.x + b.w / 2, by + b.y + b.h / 2, Math.min(b.w, b.h) / 2, 0, 6.2832);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = b.fg; ctx.font = b.fs + 'px sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(b.txt, bx + b.x + b.w / 2, by + b.y + b.h / 2 + 0.5);
+    }
+    ctx.restore();
+  }
+  await drawWires(svgTop);                          // 汇合虚线压在节点之上，跟页面看到的一样
+
+  /* 下方拼接式神配置表 */
+  if(table){
+    const tbTop = mapH;
+    ctx.save();
+    ctx.fillStyle = (table.style.th && table.style.th.fg) || '#333';
+    ctx.font = '600 15px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('式神配置 · ' + table.rows.length + ' 行', 0, tbTop + 22);
+    let x = 0;
+    const H2 = 30;
+    for(let ci = 0; ci < table.heads.length; ci++){
+      const w = table.widths[ci];
+      const st = table.style.th || {};
+      ctx.fillStyle = st.bg || 'rgba(0,0,0,.05)';
+      ctx.fillRect(x, tbTop + 30, w, H2);
+      ctx.strokeStyle = st.bd || 'rgba(0,0,0,.18)'; ctx.lineWidth = 1;
+      ctx.strokeRect(x + 0.5, tbTop + 30.5, w - 1, H2);
+      ctx.fillStyle = st.fg || '#333'; ctx.font = st.font || '600 13px sans-serif';
+      ctx.textAlign = ci === 0 ? 'center' : 'left'; ctx.textBaseline = 'middle';
+      const tx0 = ci === 0 ? x + w / 2 : x + table.pad;
+      ctx.fillText(table.heads[ci], tx0, tbTop + 30 + H2 / 2);
+      x += w;
+    }
+    table.rows.forEach((row, ri)=>{
+      let y = tbTop + 30 + H2 + ri * table.rowH;
+      let cx = 0;
+      for(let ci = 0; ci < table.heads.length; ci++){
+        const w = table.widths[ci];
+        ctx.fillStyle = ri % 2 ? 'rgba(0,0,0,.025)' : 'rgba(0,0,0,0)';
+        ctx.fillRect(cx, y, w, table.rowH);
+        ctx.fillStyle = (table.style.td && table.style.td.bd) || 'rgba(0,0,0,.15)';
+        ctx.strokeRect(cx + 0.5, y + 0.5, w - 1, table.rowH);
+        if(ci === 0){
+          ctx.fillStyle = (table.style.no && table.style.no.fg) || '#666';
+          ctx.font = (table.style.no && table.style.no.font) || '12px sans-serif';
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(String(ri + 1), cx + w / 2, y + table.rowH / 2);
+        }else{
+          const v = String(row[ci - 1] == null ? '' : row[ci - 1]);
+          let tx0 = cx + table.pad;
+          const st = table.style.td || {};
+          if(ci === 1){
+            const nm = sheetAvatar(row[0]);
+            const im = nm && table.imgs[nm];
+            if(im){
+              ctx.drawImage(im, tx0, y + (table.rowH - table.av) / 2, table.av, table.av);
+              tx0 += table.av + table.gap;
+            }
+          }
+          ctx.fillStyle = v ? (st.fg || '#333') : 'rgba(128,128,128,.6)';
+          ctx.font = st.font || '13px sans-serif';
+          ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+          ctx.fillText(v || '—', tx0, y + table.rowH / 2);
+        }
+        cx += w;
+      }
+    });
+    ctx.restore();
+  }
+  return {canvas: cv, w: W, h: H, avFail: avFail};
+}
+/* ---------------- 导出入口：JSON / 单 HTML / PNG ---------------- */
+const EXP_OPTS = [
+  {k: 'json', ic: '{ }', tt: 'JSON（可再导入）',
+   dd: '只存这一个方案的数据，可以拿「导入」塞回页面，也能直接粘进 config.json 的 schemes 数组。'},
+  {k: 'html', ic: '&#9673;', tt: '单 HTML（只读·头像固化）',
+   dd: '一个文件带全部头像，双击就能打开。只能看：单击收起 / 展开、翻阅式神配置表，没有编辑入口。'},
+  {k: 'png', ic: '&#9635;', tt: 'PNG 图片（导图 + 式神配置）',
+   dd: '导出的当前视图导出成一张图，下方直接拼接这个方案的式神配置表，方便贴图分享。'}
+];
+function openExport(){
+  const sc = scheme();
+  const box = document.getElementById('expBox');
+  if(!box) return;
+  if(!sc){ alert('没有可导出的方案'); return; }
+  document.getElementById('expName').textContent = sc.name || sc.id;
+  const box2 = document.getElementById('expOpts');
+  box2.innerHTML = '';
+  EXP_OPTS.forEach(o=>{
+    const b = document.createElement('button');
+    b.className = 'opt'; b.dataset.k = o.k;
+    b.innerHTML = '<span class="ic">' + o.ic + '</span><span class="bd">' +
+      '<div class="tt">' + o.tt + '</div><div class="dd">' + o.dd + '</div></span>';
+    b.onclick = ()=> runExport(o.k, b);
+    box2.appendChild(b);
+  });
+  setExpTip('导出当前方案「' + (sc.name || sc.id) + '」。');
+  box.classList.add('open');
+  // 预查一下头像能不能固化进去（异步，不阻塞面板弹出）：查完把结果补到提示里
+  ensureAvatarPack().then(()=>{
+    const names = schemeAvatarNames(sc);
+    const ready = names.filter(nm => /^data:/.test(avSrc(nm) || '')).length;
+    if(!names.length) return;
+    setExpTip('本方案用到 ' + names.length + ' 个式神头像，' +
+      (ready === names.length ? '已全部就绪（会固化进产物）'
+        : '其中 ' + ready + ' 个就绪；其余需要 http 环境才能取到（会退化成占位框）') + '。');
+  });
+}
+function closeExport(){ const b = document.getElementById('expBox'); if(b) b.classList.remove('open'); }
+function setExpTip(s){ const t = document.getElementById('expTip'); if(t) t.textContent = s || ''; }
+async function runExport(kind, btn){
+  const sc = scheme();
+  if(!sc){ alert('没有可导出的方案'); return; }
+  const base = slug(sc.name || sc.id);
+  const opts = document.querySelectorAll('#expOpts .opt');
+  opts.forEach(b => b.disabled = true);
+  try{
+    if(kind === 'json'){
+      download(base + '.json', schemeExportJson());
+      setExpTip('已导出 ' + base + '.json');
+      return closeExport();
+    }
+    if(kind === 'html'){
+      setExpTip('正在把头像固化进文件…');
+      const av = await collectAvatarData(sc);
+      const missed = schemeAvatarNames(sc).filter(nm => !av[nm]).length;
+      const html = buildViewerHtml(sc, av);
+      if(!html){ alert('导出失败：没能把方案写进模板'); return; }
+      downloadFile(base + '.html', new Blob([html], {type: 'text/html;charset=utf-8'}));
+      setExpTip('已导出 ' + base + '.html' +
+        (missed ? '（' + missed + ' 张头像没能内联进去，需要 http 环境）' : '（头像已全部内联）'));
+      return closeExport();
+    }
+    if(kind === 'png'){
+      setExpTip('正在画图…');
+      const r = await renderSchemePng(sc);
+      if(!r || !r.canvas){ alert('导出图片失败：' + ((r && r.err) || '画布不可用')); return; }
+      const blob = await new Promise(res => r.canvas.toBlob(res, 'image/png'));
+      if(!blob){
+        setExpTip('导出图片被浏览器拦截了（可能是本地打开导致画布被污染），用 http 方式打开页面再试。');
+        return;
+      }
+      downloadFile(base + '.png', blob);
+      setExpTip('已导出 ' + base + '.png（' + r.w + '×' + r.h +
+        (r.avFail ? ' · ' + r.avFail + ' 张头像没能内联，建议用 http 方式打开页面再导出' : '') + '）');
+      return closeExport();
+    }
+  }finally{
+    opts.forEach(b => b.disabled = false);
+  }
+}
+/* 从 JSON 里取出方案数组：接受 单个方案 / 方案数组 / {schemes:[...]} */
+function schemesFromJson(obj){
+  const list = Array.isArray(obj) ? obj
+             : (obj && Array.isArray(obj.schemes)) ? obj.schemes
+             : (obj && obj.nodes) ? [obj] : null;
+  if(!list || !list.length || !list.every(s => s && s.nodes)) return null;
+  return list;
+}
+/* 把方案加进来（一律先是自建方案，id 冲突自动改号） */
+function addSchemes(rawList){
+  let added = 0, lastId = null;
+  for(const raw of rawList){
+    const sc = JSON.parse(JSON.stringify(raw));
+    if(!isObj(sc.nodes) || !Object.keys(sc.nodes).length) continue;
+    sc.id = uniqueSchemeId(String(sc.id || 'imported'));
+    sc.name = String(sc.name || sc.id);
+    sc.builtin = false; delete sc.rev;
+    if(!sc.nodes[sc.start]) sc.start = Object.keys(sc.nodes)[0];
+    if(!Array.isArray(sc.floating)) sc.floating = [];
+    CFG.schemes.push(sc);
+    lastId = sc.id; added++;
+  }
+  if(added){ CFG.activeScheme = lastId; saveLocal(); rebuild(); flashNote(); }
+  return added;
+}
+function importScheme(){
+  const i = document.createElement('input');
+  i.type = 'file'; i.accept = '.json,application/json';
+  i.onchange = ()=>{
+    const f = i.files && i.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = ()=>{
+      let obj;
+      try{ obj = JSON.parse(rd.result); }
+      catch(e){ alert('JSON 语法错误：' + e.message); return; }
+      const list = schemesFromJson(obj);
+      if(!list){ alert('这不是一个方案文件。'); return; }
+      if(!addSchemes(list)) alert('文件里没有可用的方案。');
+    };
+    rd.readAsText(f);
+  };
+  i.click();
+}
+
+function findInst(nid){
+  for(const r of ROOTS){
+    let f = null;
+    (function w(n){ if(f) return; if(n.nid === nid && !n.isRef) f = n; for(const c of n.children) w(c); })(r);
+    if(f) return f;
+  }
+  return null;
+}
+function reselect(nid){ const inst = findInst(nid); if(inst) selectNode(inst, inst.el); }
+
+/* --- 复用已有节点（建立汇合）--- */
+function openPicker(node){
+  const sc = scheme();
+  sideTitle.textContent = '复用已有节点 → 作为「' + node.title + '」的子节点';
+  sideBody.innerHTML = '<div class="fld"><label>搜索节点</label>' +
+    '<input id="pk_q" placeholder="输入标题关键字，也可以直接输节点 ID（如 n92）"></div>' +
+    '<div id="pk_list"></div>';
+  const q = document.getElementById('pk_q'), list = document.getElementById('pk_list');
+  function draw(){
+    const kw = (q.value || '').trim();
+    const items = Object.keys(sc.nodes).filter(id =>
+      id !== node.id && (!kw ||
+        String(sc.nodes[id].title || '').indexOf(kw) >= 0 || String(id).indexOf(kw) >= 0));
+    list.innerHTML = items.length ? '' : '<div class="hint">没有匹配的节点</div>';
+    for(const id of items){
+      const n = sc.nodes[id];
+      const refs = Object.keys(sc.nodes).filter(x => sc.nodes[x].children.indexOf(id) >= 0).length;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:6px 8px;margin-bottom:6px;' +
+        'border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:13px';
+      const t = document.createElement('span');
+      t.style.cssText = 'flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+      t.textContent = n.title;
+      const meta = document.createElement('span');
+      meta.style.cssText = 'font-size:11px;opacity:.6;flex:0 0 auto';
+      meta.textContent = id + (refs ? ' · 已被 ' + refs + ' 处引用' : '');
+      row.appendChild(t); row.appendChild(meta);
+      row.onclick = ()=>{
+        if(node.children.indexOf(id) >= 0){ alert('该节点已经是当前节点的子节点了'); return; }
+        node.children.push(id);
+        saveLocal(); rebuild(true); reselect(node.id);
+      };
+      list.appendChild(row);
+    }
+  }
+  q.oninput = draw; draw();
+  sideFoot.innerHTML = '';
+  footBtn('返回节点编辑', ()=> reselect(node.id));
+  footBtn('关闭', ()=>{ if(SEL&&SEL.el) SEL.el.classList.remove('sel'); SEL=null; closeSide(); });
+  side.classList.add('open');
+}
+
+/* --- 重建 --- */
+function rebuild(keepView){
+  WARN = [];
+  world.innerHTML = '<svg id="wires"></svg><svg id="wiresTop"></svg>';
+  svg = document.getElementById('wires');
+  svgTop = document.getElementById('wiresTop');
+  ROOTS = buildRoots();
+  for(const r of ROOTS) mount(r);
+  buildToolbar();
+  buildSchemeBar();
+  renderSheet();
+  layout();
+  // keepView：改节点内容 / 加子卡 / 复用 这类「原地编辑」不该把镜头搬走（用户明确要求）；
+  // 换方案、新建、导入 这些换了另一张图的情况仍然重新适配
+  if(keepView) applyView(); else view();
+}
+
+/* --- 式神配置表：渲染 + 行内编辑 --- */
+function sheetAvatar(name){
+  const raw = String(name || '').trim();
+  if(!raw) return null;
+  for(const nm of expandNames(raw)){
+    if(CFG.assets.avatarIndex[nm]) return nm;
+    if(CFG.assets.placeholders && CFG.assets.placeholders[nm]) return nm;
+  }
+  return null;
+}
+function mkMiss(mark){
+  const d = document.createElement('span');
+  d.className = 'avm'; d.textContent = mark || CFG.style.missing.mark || '?';
+  return d;
+}
+/* 单元格内容：式神列带 26px 小头像；空值用淡一点的占位 */
+function paintCell(td, val, isSS){
+  td.innerHTML = '';
+  const v = String(val == null ? '' : val);
+  if(isSS && v){
+    const nm = sheetAvatar(v);
+    if(nm && CFG.assets.avatarIndex[nm]){
+      const im = document.createElement('img');
+      im.className = 'av'; im.alt = nm;
+      im.src = avUrl(avSrc(nm), 0);
+      im.onerror = function(){ im.replaceWith(mkMiss(CFG.style.missing.mark)); };
+      td.appendChild(im);
+    }else{
+      const d = mkMiss(CFG.style.missing.mark);
+      d.title = '未匹配到「' + v + '」的头像（可试试写全名）';
+      td.appendChild(d);
+    }
+  }
+  const sp = document.createElement('span');
+  sp.textContent = v || '—';
+  if(!v) sp.style.opacity = '.35';
+  td.appendChild(sp);
+}
+/* 双击进入编辑：换成 input，回车 / 失焦保存，Esc 取消 */
+function editCell(td, row, ci){
+  if(td.querySelector('input')) return;
+  const old = row[ci] || '';
+  td.innerHTML = '';
+  const inp = document.createElement('input');
+  inp.value = old;
+  td.appendChild(inp); inp.focus(); inp.select();
+  let done = false;
+  const commit = keep=>{
+    if(done) return; done = true;
+    if(keep) row[ci] = inp.value.trim();
+    saveLocal(); renderSheet();
+  };
+  inp.onblur = ()=> commit(true);
+  inp.onkeydown = ev=>{
+    ev.stopPropagation();                       // 别让方向键去平移导图
+    if(ev.key === 'Enter') commit(true);
+    else if(ev.key === 'Escape') commit(false);
+  };
+}
+function renderSheet(){
+  const bar = document.getElementById('sheetBar');
+  const body = document.getElementById('sheetBody');
+  const cnt = document.getElementById('sheetCnt');
+  if(!bar || !body) return;
+  const sc = scheme();
+  body.innerHTML = '';
+  if(!sc){ cnt.textContent = ''; syncSheetToggle(); return; }
+  if(!sc.sheet) normSheet(sc);            // 兜底：新建 / 外部塞进来的方案可能没有 sheet
+  const sh = sc.sheet;
+  cnt.textContent = sh.rows.length + ' 行';
+  if(!sh.rows.length){
+    const d = document.createElement('div');
+    d.id = 'sheetEmpty';
+    d.innerHTML = READONLY
+      ? '这个方案还没有录入式神配置。'
+      : '还没录入式神配置。点右上 <kbd>＋ 添加一行</kbd>，依次填：' +
+      '<b>式神</b>（支持简称，如「炎魔」）→ <b>指标</b>（速度 / 生命 / 攻击…）→ ' +
+      '<b>御魂套装</b>（散件 / 火灵+防御两件套…）→ <b>246号位</b>（速XX / 速生生…）→ ' +
+      '<b>其他要求</b>（攻击&gt;4600…）。<br>' +
+      '单元格 <kbd>双击</kbd> 改，<kbd>回车</kbd> 保存，行尾 ✕ 删除；这套配置跟着方案一起导出 / 导入。';
+    body.appendChild(d);
+    syncSheetToggle();
+    return;
+  }
+  const tb = document.createElement('table');
+  tb.className = 'sheet';
+  const trh = document.createElement('tr');
+  const th0 = document.createElement('th'); th0.className = 'no'; th0.textContent = '序号'; trh.appendChild(th0);
+  for(const h of sh.headers){ const th = document.createElement('th'); th.textContent = h; trh.appendChild(th); }
+  if(!READONLY){                                  // 只读版没有「删除行」这一列
+    const thx = document.createElement('th'); thx.style.width = '32px'; trh.appendChild(thx);
+  }
+  const thead = document.createElement('thead'); thead.appendChild(trh); tb.appendChild(thead);
+  const tbody = document.createElement('tbody');
+  sh.rows.forEach((row, ri)=>{
+    const tr = document.createElement('tr');
+    const tdn = document.createElement('td'); tdn.className = 'no'; tdn.textContent = ri + 1; tr.appendChild(tdn);
+    sh.headers.forEach((_, ci)=>{
+      const td = document.createElement('td');
+      td.className = READONLY ? 'view' : 'edit'; td.dataset.ci = ci;
+      paintCell(td, row[ci], ci === 0);
+      if(!READONLY) td.ondblclick = ()=> editCell(td, row, ci);      // 只读版不给编辑入口
+      tr.appendChild(td);
+    });
+    if(!READONLY){
+      const del = document.createElement('td');
+      del.className = 'del'; del.textContent = '✕'; del.title = '删除这一行';
+      del.onclick = ()=>{ sh.rows.splice(ri, 1); saveLocal(); renderSheet(); };
+      tr.appendChild(del);
+    }
+    tbody.appendChild(tr);
+  });
+  tb.appendChild(tbody); body.appendChild(tb);
+  syncSheetToggle();
+}
+function addSheetRow(){
+  const sc = scheme(); if(!sc) return;
+  sc.sheet.rows.push(new Array(sc.sheet.headers.length).fill(''));
+  saveLocal();
+  SHEET_OPEN = true;            // 加行时自动把抽屉打开
+  renderSheet();
+  const body = document.getElementById('sheetBody');
+  body.scrollTop = body.scrollHeight;
+  // 不用复杂选择器（tbody tr:last-child td.edit），逐级取更稳
+  const tbody = body.querySelector('table') && body.querySelector('table').querySelector('tbody');
+  const lastTr = tbody && tbody.children[tbody.children.length - 1];
+  const firstCell = lastTr && lastTr.children[1];                        // 1 = 第一列数据（0 是序号）
+  if(firstCell) editCell(firstCell, sc.sheet.rows[sc.sheet.rows.length - 1], 0);
+}
+/* 配置表只在需要时出现：方案栏按钮带行数徽标，打开时按钮高亮，方便看出「本方案有没有配置」 */
+function syncSheetToggle(){
+  const bar = document.getElementById('sheetBar');
+  if(bar) bar.classList.toggle('open', SHEET_OPEN);
+  const t = document.getElementById('sheetToggle');
+  if(t) t.textContent = SHEET_OPEN ? '收起 ▾' : '展开 ▴';
+  const sc = scheme();
+  const n = sc && sc.sheet ? sc.sheet.rows.length : 0;
+  if(SHEET_BTN){
+    SHEET_BTN.textContent = n ? '式神配置 · ' + n : '式神配置';
+    SHEET_BTN.classList.toggle('open', SHEET_OPEN);
+    SHEET_BTN.title = (n ? '当前方案已录入 ' + n + ' 条式神配置' : '当前方案还没有录入式神配置')
+      + ' · 点击' + (SHEET_OPEN ? '收起' : '展开');
+  }
+}
+function toggleSheet(){
+  SHEET_OPEN = !SHEET_OPEN;
+  if(SHEET_OPEN) renderSheet();
+  syncSheetToggle();
+}
+
+/* --- 启动：三层配置合并后校验渲染 --- */
+(function boot(){
+  // 三层：内嵌默认值 < 同目录 config.json（固化基线） < 浏览器本地改动（本地方案）
+  // 只读导出（单 HTML）是自带数据的自包含文件：不能再去读旁边的 config.json，
+  // 也不能读浏览器 localStorage（同源时会把原页面的方案一起带进来）—— 只认自己内嵌的那一份
+  setPublished(READONLY ? null : fetchExt());
+  CFG = validate(READONLY ? null : loadLocal());
+  THEME = CFG.style.startTheme === 'dark' ? 'dark' : 'light';
+  applyVars();
+  document.getElementById('sheetAdd').onclick = addSheetRow;
+  document.getElementById('sheetToggle').onclick = toggleSheet;
+  const expClose = document.getElementById('expClose');
+  if(expClose) expClose.onclick = closeExport;
+  const expBox = document.getElementById('expBox');
+  if(expBox) expBox.addEventListener('click', ev=>{ if(ev.target === expBox) closeExport(); });
+  window.addEventListener('keydown', ev=>{ if(ev.key === 'Escape'){ closeExport(); closeCtx(); } });
+  // 只读导出（单 HTML）：加个 ro 类，编辑面板和方案管理按钮整体让位，只留查看
+  if(READONLY) document.documentElement.classList.add('ro');
+  syncSheetToggle();
+  // file:// 打开时（双击本地文件）主动把内联头像包挂上再渲染一次：
+  // 个别浏览器在 file:// 下读不到同目录的图片子资源（节点头像会全变 ? 占位框），
+  // 而 <script src> 不受这条限制（fetch / XHR 会被拦），所以走动态脚本这条路。
+  if(typeof location !== 'undefined' && location.protocol === 'file:'){
+    ensureAvatarPack().then(ok=>{ if(ok && window.__AV_INLINE__) rebuild(true); });
+  }
+  rebuild();
+  if(WARN.length) console.warn('配置告警', WARN);
+})();
+</script>
+</body>
+</html>
